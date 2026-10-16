@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚖️ 诗词格律检查</title>
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { min-height:100%; background:linear-gradient(160deg,#1a1428 0%,#241a33 55%,#120e1c 100%); }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#e8e0f0;
+    padding:18px 14px 40px; display:flex; justify-content:center; user-select:none; }
+  #wrap { width:100%; max-width:660px; }
+  .back { display:inline-block; text-decoration:none; color:#9a8fc0; font-size:13px; margin-bottom:12px;
+    padding:6px 12px; border:1px solid #3a3050; border-radius:20px; }
+  h1 { font-size:20px; color:#c8b3ff; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:#8a7fb0; font-size:12px; margin-bottom:16px; }
+  .card { background:#1c1530; border:1px solid #3a3050; border-radius:12px; padding:14px; margin-bottom:12px; }
+  .lbl { font-size:11px; color:#8a7fb0; margin-bottom:9px; letter-spacing:1px; }
+  textarea { width:100%; background:#100b1c; border:1px solid #3a3050; border-radius:9px; padding:11px 12px;
+    color:#e8e0f0; font-size:15px; font-family:inherit; resize:vertical; min-height:110px; line-height:1.9; }
+  textarea:focus { outline:none; border-color:#7a5fc0; }
+  .f { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .f label { width:60px; font-size:13px; color:#c8b3ff; }
+  .f select { flex:1; background:#100b1c; border:1px solid #3a3050; border-radius:9px; padding:9px 10px;
+    color:#e8e0f0; font-size:14px; font-family:inherit; }
+  .line { font-size:20px; letter-spacing:6px; margin-bottom:6px; line-height:2; }
+  .line .ok { color:#a8f0c0; }
+  .line .bad { color:#ff8fa3; }
+  .line .na { color:#6a5f90; }
+  .tag { font-size:11px; color:#8a7fb0; margin-left:6px; letter-spacing:0; }
+  .r { padding:9px 12px; background:#100b1c; border-radius:9px; margin-bottom:7px; font-size:13.5px;
+    color:#b8a0ff; line-height:1.7; }
+  .hint { font-size:12px; color:#6a5f90; line-height:1.6; margin-top:6px; }
+  .err { color:#ff8fa3; font-size:13px; padding:10px; }
+  .ver { text-align:center; color:#2a2440; font-size:10px; margin-top:22px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <a class="back" href="../">← 回文科专区</a>
+  <h1>⚖️ 诗词格律检查</h1>
+  <div class="sub">近体诗（五绝/七绝/五律/七律）平仄核对</div>
+
+  <div class="card">
+    <div class="lbl">输入诗句（每句一行）</div>
+    <textarea id="in" placeholder="如：&#10;朝辞白帝彩云间&#10;千里江陵一日还&#10;两岸猿声啼不住&#10;轻舟已过万重山"></textarea>
+    <div class="f" style="margin-top:10px">
+      <label>诗体</label>
+      <select id="form">
+        <option value="auto">自动识别</option>
+        <option value="7jue">七言绝句</option>
+        <option value="5jue">五言绝句</option>
+        <option value="7lv">七言律诗</option>
+        <option value="5lv">五言律诗</option>
+      </select>
+    </div>
+    <div class="hint">依平水韵判平仄；标红的字为与该句式标准平仄不符处</div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">检查结果</div>
+    <div id="out"><div class="hint">输入诗句后检查</div></div>
+  </div>
+  <div class="ver">v1-格律检查 20261016</div>
+</div>
+<script>
+// 依据：近体诗平仄格式（王力《诗词格律》通行结论）；平仄取平水韵单字平仄表。
+// 格律规则：句中一三五可不论、二四六分明；孤平、三平尾为诗病。
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var WT = null;
+
+  function loadTune(){
+    if(WT) return Promise.resolve(WT);
+    return fetch("../rhyme/data/wordtune.js.json").then(function(r){return r.json();}).then(function(j){ WT=j.map; return WT; });
+  }
+  function tune(ch){
+    var t = WT ? WT[ch] : null;
+    if(!t) return "?";
+    if(t === "平仄") return "中";
+    return t;   // 平 / 仄
+  }
+
+  // 四种基本句式（以五言为例；七言=五言前加相反两字）
+  // 标记：P=平 Z=仄 (中=可不论)
+  // 五言基本句式：
+  //  仄仄平平仄 (仄起仄收)  平平仄仄平 (平起平收)  平平平仄仄 (平起仄收)  仄仄仄平平 (仄起平收)
+  var WU = [
+    ["Z","Z","P","P","Z"],   // 仄仄平平仄
+    ["P","P","Z","Z","P"],   // 平平仄仄平
+    ["P","P","P","Z","Z"],   // 平平平仄仄
+    ["Z","Z","Z","P","P"],   // 仄仄仄平平
+  ];
+
+  // 每句标准：取"最接近"的基本句式（按匹配数）
+  function toCN(c){ return c === "Z" ? "仄" : c === "P" ? "平" : "中"; }
+  function bestFit(tunes){
+    // 五言基本句式
+    var wu = [
+      ["Z","Z","P","P","Z"],   // 仄仄平平仄
+      ["P","P","Z","Z","P"],   // 平平仄仄平
+      ["P","P","P","Z","Z"],   // 平平平仄仄
+      ["Z","Z","Z","P","P"],   // 仄仄仄平平
+    ];
+    // 七言基本句式
+    var qi = [
+      ["P","Z","Z","P","P","Z","Z"],   // 平起仄收
+      ["Z","P","P","Z","Z","P","P"],   // 仄起平收
+      ["Z","P","P","P","P","Z","Z"],   // 仄起仄收
+      ["P","Z","Z","Z","Z","P","P"],   // 平起平收
+    ];
+    var cands = (tunes.length === 7) ? qi : (tunes.length === 5 ? wu : []);
+    var best = null, bestScore = -1;
+    cands.forEach(function(c){
+      var score = 0;
+      for(var i=0;i<tunes.length;i++){
+        var t = tunes[i], e = toCN(c[i]);   // 统一为中文再比
+        if(t === e) score += 2;
+        else if(t === "中") score += 1;
+      }
+      if(score > bestScore){ bestScore = score; best = c; }
+    });
+    return best;
+  }
+
+  // 检查单句：返回 [{ch, tune, expect, ok}]
+  function checkLine(line){
+    var chars = Array.from(line).filter(function(c){ return /[\u4e00-\u9fa5]/.test(c); });
+    var tunes = chars.map(tune);
+    var std = bestFit(tunes);
+    if(!std) return null;
+    return chars.map(function(c,i){
+      var t = tunes[i], e = toCN(std[i]);   // std 是 Z/P，转中文再比
+      // 判定：一三五可不论（位置 0,2,4 → 索引 0,2,4 对五言）
+      var pos = i; // 0-based
+      var canFlex = (pos % 2 === 0) && pos < tunes.length - 1;
+      var ok = (t === e) || (t === "中") || (canFlex && (t === "平" || t === "仄"));
+      return { ch: c, tune: t, expect: e, ok: ok };
+    });
+  }
+
+  function render(){
+    var text = $("in").value.trim();
+    if(!text){ $("out").innerHTML = "<div class='hint'>输入诗句后检查</div>"; return; }
+    loadTune().then(function(){
+      var lines = text.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
+      var html = "";
+      lines.forEach(function(line){
+        var r = checkLine(line);
+        if(!r){ return; }
+        var lh = "";
+        r.forEach(function(x){
+          var cls = x.tune === "?" ? "na" : (x.ok ? "ok" : "bad");
+          lh += '<span class="'+cls+'">'+x.ch+'</span>';
+        });
+        var badN = r.filter(function(x){ return !x.ok && x.tune !== "?"; }).length;
+        var naN = r.filter(function(x){ return x.tune === "?"; }).length;
+        html += '<div class="line">'+lh+'<span class="tag">'+
+          (badN===0 ? "✓ 合律" : ("✗ "+badN+" 处不符")) +
+          (naN ? "（"+naN+"字未收录）" : "") + '</span></div>';
+      });
+      html += '<div class="r" style="margin-top:10px;font-size:12px;color:#8a7fb0">说明：依平水韵判平仄；「一三五不论」，故奇数位（除句末）不算错。「✓合律」指该句符合某一近体诗基本句式。</div>';
+      $("out").innerHTML = html;
+    }).catch(function(e){
+      $("out").innerHTML = "<div class='err'>数据加载失败："+e.message+"</div>";
+    });
+  }
+  $("in").addEventListener("input", render);
+})();
+</script>
+</body>
+</html>
