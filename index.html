@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐳 feiyu-calendar-toolkit</title>
+<link rel="stylesheet" href="assets/themes/skins.css">
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    margin:0; min-height:100vh;
+    background:linear-gradient(160deg,#0a1628 0%,#123 60%,#0a1f33 100%);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:#dbeafe; padding:24px 16px 48px; user-select:none;
+  }
+  h1 { font-size:26px; text-align:center; color:#8fd0ff; font-weight:700; letter-spacing:1px; margin:12px 0 6px; }
+  .sub { text-align:center; color:#5b7a99; font-size:13px; margin-bottom:6px; line-height:1.7; }
+  .badge { text-align:center; margin-bottom:24px; }
+  .badge span { display:inline-block; font-size:11px; color:#6b8fb3; border:1px solid #22384c;
+    border-radius:20px; padding:3px 11px; margin:2px; }
+  h2 { font-size:16px; color:#9fd8ff; max-width:760px; margin:26px auto 12px; padding-left:6px;
+    border-left:3px solid #2e5f8e; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:12px; max-width:760px; margin:0 auto; }
+  a.tool { display:block; text-decoration:none; color:inherit;
+    background:linear-gradient(160deg,#16304a,#0f2233); border:1px solid #2e5f8e;
+    border-radius:12px; padding:15px 13px; transition:.18s; }
+  a.tool:active { transform:scale(.96); background:#1c3d5a; }
+  a.tool .icon { font-size:30px; display:block; margin-bottom:6px; }
+  a.tool .name { font-size:15px; font-weight:700; color:#9fd8ff; }
+  a.tool .desc { font-size:11px; color:#6b8fb3; margin-top:3px; line-height:1.5; }
+  .foot { text-align:center; color:#3f5a75; font-size:12px; margin-top:36px; line-height:2; }
+  .foot a { color:#5b8fb3; }
+</style>
+</head>
+<body>
+  <h1>🐳 feiyu-calendar-toolkit</h1>
+  <div class="sub">历法 · 术数 · 数学小工具</div>
+  <div class="badge">
+    <span>纯前端</span><span>零依赖</span><span>零服务器</span><span>零联网</span><span>MIT</span>
+  </div>
+
+  <h2>🌍 历法 / Calendars</h2>
+  <div class="grid">
+    <a class="tool" href="calendar/huangli/"><span class="icon">📅</span><span class="name">黄历</span><span class="desc">农历 · 干支 · 节气</span></a>
+    <a class="tool" href="tools/maya/"><span class="icon">🌽</span><span class="name">玛雅历</span><span class="desc">长计历 · 卓尔金 · 哈布</span></a>
+    <a class="tool" href="tools/hijri/"><span class="icon">🌙</span><span class="name">回历</span><span class="desc">伊斯兰历 · 双向换算</span></a>
+    <a class="tool" href="tools/tibetan/"><span class="icon">🏔️</span><span class="name">藏历</span><span class="desc">时轮历 · 饶迥周期</span></a>
+    <a class="tool" href="tools/orthodox/"><span class="icon">✝️</span><span class="name">东正教历</span><span class="desc">儒略旧历 · 复活节</span></a>
+  </div>
+
+  <h2>🔮 术数 / Divination</h2>
+  <div class="grid">
+    <a class="tool" href="tools/bazi/"><span class="icon">🧮</span><span class="name">八字排盘</span><span class="desc">四柱 · 十神 · 大运</span></a>
+    <a class="tool" href="tools/liuyao/"><span class="icon">🪙</span><span class="name">六爻起卦</span><span class="desc">纳甲 · 世应 · 六亲</span></a>
+    <a class="tool" href="tools/ziwei/"><span class="icon">🌌</span><span class="name">紫微斗数</span><span class="desc">十二宫 · 星曜</span></a>
+    <a class="tool" href="tools/qimen/"><span class="icon">🧭</span><span class="name">奇门遁甲</span><span class="desc">九宫 · 八门 · 九星</span></a>
+    <a class="tool" href="tools/daliuren/"><span class="icon">🪷</span><span class="name">大六壬</span><span class="desc">天地盘 · 四课三传</span></a>
+    <a class="tool" href="tools/taiyi/"><span class="icon">🌀</span><span class="name">太乙神数</span><span class="desc">十六神 · 三算五将</span></a>
+    <a class="tool" href="tools/xiaoliuren/"><span class="icon">🖐️</span><span class="name">小六壬</span><span class="desc">掌诀占断</span></a>
+    <a class="tool" href="tools/yigua/"><span class="icon">☯️</span><span class="name">易卦六十四</span><span class="desc">卦辞 · 爻辞</span></a>
+    <a class="tool" href="tools/li-huang/"><span class="icon">📅</span><span class="name">黄历·宜忌</span><span class="desc">宜忌 · 星宿 · 冲煞</span></a>
+    <a class="tool" href="tools/tarot/"><span class="icon">🃏</span><span class="name">塔罗牌</span><span class="desc">78 张 · 正逆位</span></a>
+    <a class="tool" href="tools/runes/"><span class="icon">ᚠ</span><span class="name">卢恩符文</span><span class="desc">北欧符文</span></a>
+    <a class="tool" href="tools/astro-dice/"><span class="icon">🎲</span><span class="name">占星骰子</span><span class="desc">星座 · 行星 · 宫位</span></a>
+    <a class="tool" href="tools/raml/"><span class="icon">⚖️</span><span class="name">阿拉伯地占</span><span class="desc">十六图形</span></a>
+    <a class="tool" href="tools/ogham/"><span class="icon">🌳</span><span class="name">欧甘树文</span><span class="desc">凯尔特树文</span></a>
+    <a class="tool" href="tools/omikuji/"><span class="icon">🎋</span><span class="name">御神签</span><span class="desc">日本神签</span></a>
+    <a class="tool" href="tools/astrology/"><span class="icon">🪐</span><span class="name">本命星盘</span><span class="desc">行星 · 宫位 · 相位</span></a>
+    <a class="tool" href="tools/celestial-star/"><span class="icon">🌌</span><span class="name">星空图</span><span class="desc">实时星图</span></a>
+    <a class="tool" href="tools/ancient-astro/"><span class="icon">🏛️</span><span class="name">古代天文换算</span><span class="desc">古历对照</span></a>
+  </div>
+
+  <h2>🧰 数学 · 换算 / Math</h2>
+  <div class="grid">
+    <a class="tool" href="tools/sci-calc/"><span class="icon">🧮</span><span class="name">科学计算器</span><span class="desc">三角 · 对数 · 幂</span></a>
+    <a class="tool" href="tools/base-convert/"><span class="icon">🔢</span><span class="name">进制转换</span><span class="desc">二/八/十/十六进制</span></a>
+    <a class="tool" href="tools/unit-convert/"><span class="icon">📏</span><span class="name">单位换算</span><span class="desc">长度/重量/温度…</span></a>
+    <a class="tool" href="tools/number-theory/"><span class="icon">🔍</span><span class="name">质数·数论</span><span class="desc">质数判定 · 分解</span></a>
+    <a class="tool" href="tools/geo-distance/"><span class="icon">🌍</span><span class="name">经纬度测距</span><span class="desc">球面距离</span></a>
+    <a class="tool" href="tools/moon-phase/"><span class="icon">🌙</span><span class="name">月相盘</span><span class="desc">月相 · 月龄</span></a>
+  </div>
+
+  <div class="foot">
+    🐳 feiyu-calendar-toolkit · MIT License<br>
+    纯前端 · 零依赖 · 零服务器 · 零联网<br>
+    <a href="THIRD-PARTY-NOTICES.md">第三方开源声明</a>
+  </div>
+</body>
+</html>

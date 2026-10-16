@@ -1,0 +1,95 @@
+<h1 align="center">📦 肥鱼主流历法与术数工具箱</h1>
+
+<h3 align="center">feiyu-calendar-toolkit</h3>
+
+<p align="center">
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <img alt="deps" src="https://img.shields.io/badge/dependencies-0-brightgreen.svg">
+  <img alt="offline" src="https://img.shields.io/badge/offline-100%25-success.svg">
+</p>
+
+---
+
+一个**纯前端、零依赖、即开即用**的开源集成工具。涵盖主流的东方历法（黄历/藏历）、西方历法（公历/东正教）、美洲古历（玛雅历）、伊斯兰历（回历），以及主流的中西方术数排盘（八字、紫微、奇门、大六壬、太乙、星盘、塔罗等）。
+
+我们只收录**目前仍在使用、且具有广泛文化影响力**的历法与术数体系，**绝不堆砌冗杂或死去的历法**。
+
+---
+
+## ✨ 特点
+
+- **零依赖**：所有核心计算内联在页面里，不加载任何外部 CDN / 字体 / 图片。
+- **零服务器**：纯静态 HTML/JS/CSS，双击即用，也可托管在任何静态空间。
+- **零联网**：不使用任何 `fetch` / `XMLHttpRequest`，不采集任何数据。
+- **纯数学**：历法换算、天文计算、术数排盘均基于公开算法与学术论文实现。
+
+---
+
+## 📦 内容
+
+### 🌍 历法 / Calendars
+| 工具 | 说明 |
+|---|---|
+| 📅 黄历 | 公历 ⇄ 农历、干支、二十四节气（含"术数版"宜忌/星宿/冲煞）|
+| 🌽 玛雅历 | 长计历 · 卓尔金历 · 哈布历 · 历法轮，双向换算 |
+| 🌙 回历 | 伊斯兰历（希吉来历）双向换算 |
+| 🏔️ 藏历 | 时轮历（普巴派）· 饶迥周期 · 闰月闰日 |
+| ✝️ 东正教历 | 儒略历（旧历）换算 · 复活节算法 |
+
+### 🔮 术数 / Divination
+八字排盘 · 六爻起卦 · 紫微斗数 · 奇门遁甲 · 大六壬 · 太乙神数 · 小六壬 · 易卦六十四 ·
+塔罗牌 · 卢恩符文 · 占星骰子 · 阿拉伯地占 · 欧甘树文 · 御神签 · 本命星盘 · 星空图 · 古代天文换算
+
+### 🧰 数学 / 换算 / Math & Conversion
+科学计算器 · 进制转换 · 单位换算 · 质数·数论 · 经纬度测距 · 月相盘
+
+---
+
+## 🚀 使用
+
+```bash
+# 方式一：直接打开
+open index.html
+
+# 方式二：本地静态服务器（任意一个都行）
+python3 -m http.server 8080
+```
+
+然后浏览器访问对应页面即可。**无需安装、无需构建。**
+
+---
+
+## 🧮 算法与数据来源
+
+本项目的历法与天文计算，建立在以下**公开、开源、学术**成果之上（详见
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）：
+
+- **lunar-javascript**（6tail，MIT）—— 农历 / 干支 / 节气基座
+- **iztro**（MIT）—— 紫微斗数
+- **3meta**（MIT）—— 奇门遁甲
+- **mingpan**（Apache-2.0）—— 大六壬
+- **react-taiyi / kintaiyi**（MIT）—— 太乙神数
+- **celestine**（MIT）—— 西洋占星
+- **@hnw/date-tibetan**（MIT）—— 藏历（算法据 Svante Janson《Tibetan calendar mathematics》）
+
+玛雅历、回历、东正教历为**纯算法实现**（儒略日 JDN 桥梁 / 浏览器原生 Intl）。
+
+---
+
+## 📄 许可
+
+本项目采用 **MIT License**（见 [LICENSE](LICENSE)）。
+
+第三方依赖各自的许可原文收录于 [`LICENSES/`](LICENSES/)，并汇总于
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+
+---
+
+## ⚠️ 免责声明
+
+术数 / 命理内容属**传统文化**范畴，**非科学结论**，仅供文化娱乐与学习参考，
+请勿据以做重大决定。历法换算基于公开算法，个别流派或口径可能存在细微差异。
+
+---
+
+🐳 Made with care.

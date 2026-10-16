@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🃏 塔罗牌</title>
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { min-height:100%; background:#0d0a14; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif; color:#e8d8f0;
+    padding:16px 12px 40px; user-select:none; display:flex; justify-content:center; }
+  #wrap { width:100%; max-width:560px; }
+  h1 { font-size:22px; text-align:center; color:#c9a0ff; margin-bottom:4px; letter-spacing:3px; }
+  .sub { text-align:center; color:#8a7399; font-size:12px; margin-bottom:16px; line-height:1.6; }
+  .card { background:linear-gradient(160deg,#251a38,#171024); border:1px solid #4a3a6a;
+    border-radius:12px; padding:14px; margin-bottom:11px; }
+  .card h3 { font-size:13px; color:#b090e0; margin-bottom:10px; border-left:3px solid #b090e0; padding-left:8px; }
+  button.go { width:100%; padding:14px; font-size:17px; font-weight:700; color:#1a1024;
+    background:linear-gradient(160deg,#c9a0ff,#9060d0); border:none; border-radius:11px;
+    cursor:pointer; font-family:inherit; letter-spacing:2px; }
+  button.go:active { transform:scale(.98); }
+  .modes { display:flex; gap:8px; margin-bottom:10px; }
+  .modes button { flex:1; padding:9px; font-size:13px; background:#1a1228; color:#b090e0;
+    border:1px solid #4a3a6a; border-radius:9px; cursor:pointer; font-family:inherit; }
+  .modes button.active { background:#33244a; color:#e0c0ff; border-color:#9060d0; }
+  .cards { display:flex; justify-content:center; gap:12px; margin:14px 0; flex-wrap:wrap; }
+  .tcard { width:96px; height:160px; border-radius:10px; perspective:600px; cursor:pointer; }
+  .tcard .inner { width:100%; height:100%; position:relative; transition:transform .5s;
+    transform-style:preserve-3d; }
+  .tcard.flipped .inner { transform:rotateY(180deg); }
+  .tcard .face { position:absolute; inset:0; border-radius:10px; backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center; text-align:center; }
+  .tcard .back { background:repeating-linear-gradient(45deg,#3a2a5a,#3a2a5a 6px,#2a1e44 6px,#2a1e44 12px);
+    border:2px solid #6a4aa0; color:#c9a0ff; font-size:30px; }
+  .tcard .front { background:linear-gradient(160deg,#2a1e44,#1a1230); border:2px solid #9060d0;
+    transform:rotateY(180deg); flex-direction:column; padding:8px; }
+  .tcard .front .nm { font-size:14px; color:#e0c0ff; font-weight:700; margin-bottom:4px; }
+  .tcard .front .ic { font-size:28px; margin:4px 0; }
+  .tcard .front .pos { font-size:11px; color:#b090e0; }
+  .tcard .front.rev .pos { color:#e08080; }
+  .sect { color:#b090e0; font-size:14px; font-weight:700; margin:14px 0 8px; }
+  .interp { background:#1a1228; border:1px solid #4a3a6a; border-radius:10px; padding:12px 14px;
+    font-size:13px; line-height:1.8; color:#c8b8e0; }
+  .interp b { color:#d0b0ff; }
+  .interp ul { margin:0 0 8px; padding-left:18px; }
+  .interp li { margin-bottom:5px; color:#b8a8d0; }
+  .interp .disclaim { color:#ffb3c1; background:#2a0f1a; border:1px solid #5a2a3a; border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:8px; }
+  .interp .note { color:#8a7399; font-size:11px; margin-top:6px; }
+  .hint { text-align:center; color:#5a4a70; font-size:11px; margin-top:10px; line-height:1.7; }
+  .ver { text-align:center; color:#3a2e4c; font-size:10px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>🃏 塔 罗 牌</h1>
+  <div class="sub">静心默想你的问题 · 抽牌<br>纯本地随机 · 无网络</div>
+
+  <div class="card">
+    <h3>选择牌阵</h3>
+    <div class="modes">
+      <button data-n="1" class="active">单张（每日指引）</button>
+      <button data-n="3">三张（过去/现在/未来）</button>
+    </div>
+    <button class="go" id="draw">洗 牌 抽 牌</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="hint">塔罗为西洋神秘学文化，属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
+  <div class="ver">v1-塔罗牌 20261015</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // 大阿卡纳 22 张（编号,名,符号,正位义,逆位义）
+  var MAJOR = [
+    [0,'愚者','🃏','新的开始、冒险、纯真、无限可能','鲁莽、逃避、错失时机'],
+    [1,'魔术师','🎩','创造力、行动力、掌控资源、心想事成','欺骗、能力未发挥、操弄'],
+    [2,'女祭司','🌙','直觉、潜意识、智慧、隐藏的真相','忽视直觉、秘密、表里不一'],
+    [3,'女皇','👑','丰饶、母性、滋养、感官享受','依赖、过度保护、创作受阻'],
+    [4,'皇帝','🏛️','权威、秩序、稳定、掌控','专制、固执、缺乏纪律'],
+    [5,'教皇','⛪','传统、信仰、指引、精神导师','墨守成规、教条、叛逆'],
+    [6,'恋人','💕','爱情、结合、抉择、价值观','失衡、错误选择、分离'],
+    [7,'战车','🐎','意志、胜利、前进、掌控方向','失控、方向迷茫、挫折'],
+    [8,'力量','🦁','勇气、耐心、内在力量、驯服','软弱、自我怀疑、失控'],
+    [9,'隐士','🕯️','内省、独处、寻找真理、指引','孤立、逃避、拒绝帮助'],
+    [10,'命运之轮','🎡','转折、周期、机遇、命运转动','厄运、抗拒变化、停滞'],
+    [11,'正义','⚖️','公正、因果、真相、责任','不公、逃避责任、失衡'],
+    [12,'倒吊人','🙃','暂停、牺牲、换位思考、顿悟','拖延、无谓牺牲、僵局'],
+    [13,'死神','💀','结束、蜕变、放下、重生','抗拒改变、停滞、执着'],
+    [14,'节制','🏺','平衡、调和、耐心、中庸','失衡、极端、缺乏耐心'],
+    [15,'恶魔','😈','诱惑、束缚、欲望、成瘾','解脱、觉醒、挣脱束缚'],
+    [16,'塔','🗼','突变、崩塌、觉醒、打破旧局','勉强维持、逃避灾变'],
+    [17,'星星','⭐','希望、疗愈、灵感、信心','失望、自我怀疑、迷失'],
+    [18,'月亮','🌕','幻象、潜意识、不安、未知','迷雾散去、真相浮现'],
+    [19,'太阳','☀️','成功、喜悦、活力、光明','短暂的阴霾、过度乐观'],
+    [20,'审判','📯','觉醒、重生、召唤、清算','自我否定、逃避召唤'],
+    [21,'世界','🌍','完成、圆满、成就、整合','未竟、拖延、缺最后一步']
+  ];
+  // 小阿卡纳：4 花色 × 14（A~10 + 侍从/骑士/皇后/国王）
+  var SUITS = [
+    ['权杖','🔥'],['圣杯','💧'],['宝剑','⚔️'],['星币','🪙']
+  ];
+  var RANKS = ['A','2','3','4','5','6','7','8','9','10','侍从','骑士','皇后','国王'];
+  // 小阿卡纳牌义（简化：按花色+数字给关键词）
+  var SUIT_MEAN = {
+    '权杖':{pos:'行动、热情、创造、事业',neg:'冲动、停滞、精力耗散'},
+    '圣杯':{pos:'情感、关系、直觉、爱',neg:'情绪困扰、失落、情感阻塞'},
+    '宝剑':{pos:'思维、沟通、冲突、真相',neg:'困惑、争执、思维混乱'},
+    '星币':{pos:'物质、金钱、务实、稳定',neg:'财务困扰、贪心、缺乏踏实'}
+  };
+  function rankHint(r){
+    var m={'A':'新的开始与潜能','2':'抉择与平衡','3':'初步成果与协作','4':'稳定与休整',
+      '5':'冲突与失落','6':'和谐与给予','7':'坚持与评估','8':'努力与进展','9':'接近圆满',
+      '10':'完成与责任','侍从':'学习与消息','骑士':'行动与追逐','皇后':'滋养与内在','国王':'掌控与成熟'};
+    return m[r]||'';
+  }
+
+  function buildDeck(){
+    var deck=[];
+    MAJOR.forEach(function(c){ deck.push({type:'major', id:c[0], name:c[1], icon:c[2], up:c[3], rev:c[4]}); });
+    SUITS.forEach(function(s){
+      RANKS.forEach(function(r){
+        var nm=s[0]+r;
+        deck.push({type:'minor', name:nm, icon:s[1], suit:s[0], rank:r,
+          up:SUIT_MEAN[s[0]].pos+'｜'+rankHint(r),
+          rev:SUIT_MEAN[s[0]].neg+'｜'+rankHint(r)});
+      });
+    });
+    return deck; // 78 张
+  }
+
+  var mode=1;
+  document.querySelectorAll('.modes button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.modes button').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active'); mode=parseInt(b.dataset.n,10);
+    });
+  });
+
+  function drawCards(n){
+    var deck=buildDeck();
+    // Fisher-Yates
+    for(var i=deck.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=deck[i];deck[i]=deck[j];deck[j]=t; }
+    return deck.slice(0,n).map(function(c){ return {card:c, reversed:Math.random()<0.5}; });
+  }
+
+  function calc(){
+    var n=mode;
+    var picked=drawCards(n);
+    var res=document.getElementById('result');
+    var h='<div class="card"><h3>你的牌</h3><div class="cards">';
+    picked.forEach(function(p,i){
+      var c=p.card;
+      h+='<div class="tcard" data-i="'+i+'"><div class="inner">';
+      h+='<div class="face back">✦</div>';
+      h+='<div class="face front'+(p.reversed?' rev':'')+'">';
+      h+='<div class="ic">'+c.icon+'</div>';
+      h+='<div class="nm">'+c.name+'</div>';
+      h+='<div class="pos">'+(p.reversed?'逆位':'正位')+'</div>';
+      h+='</div></div></div>';
+    });
+    h+='</div><div style="text-align:center;color:#8a7399;font-size:11px">点击牌面翻开</div></div>';
+
+    // 解读
+    h+='<div class="sect">📖 解读</div><div class="interp">';
+    h+='<div class="disclaim">⚠️ 塔罗属西洋神秘学文化，以下为传统牌义，非科学预测，仅供娱乐参考。</div>';
+    var labels = n===1?['今日指引']:['过去','现在','未来'];
+    picked.forEach(function(p,i){
+      var c=p.card;
+      h+='<p><b>'+labels[i]+'：'+c.name+'（'+(p.reversed?'逆位':'正位')+'）</b></p>';
+      h+='<ul><li>'+(p.reversed? c.rev : c.up)+'</li></ul>';
+    });
+    h+='<p class="note">塔罗是象征性的自省工具，解读因人而异；请当娱乐与思考引子，勿作命运断言。</p>';
+    h+='</div>';
+
+    res.innerHTML=h;
+    // 点击翻牌
+    res.querySelectorAll('.tcard').forEach(function(el){
+      el.addEventListener('click',function(){ el.classList.toggle('flipped'); });
+    });
+    // 延迟自动翻开
+    setTimeout(function(){ res.querySelectorAll('.tcard').forEach(function(el){ el.classList.add('flipped'); }); }, 500);
+  }
+
+  document.getElementById('draw').addEventListener('click',calc);
+  calc();
+})();
+</script>
+</body>
+</html>

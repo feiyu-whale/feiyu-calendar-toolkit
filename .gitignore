@@ -1,0 +1,11 @@
+# 备份镜像
+*.bak
+*.bak.*
+# 缓存
+__pycache__/
+*.pyc
+.DS_Store
+# 密钥/敏感
+*.token
+.aikey
+.env
