@@ -267,7 +267,9 @@
     h += '<div class="sect" style="margin-top:14px">💡 白话解读</div><div class="interp">';
     h += '<p><b>一句话：</b>太乙把"谁占上风"算成主客两方——<b>主方</b>看你/我方，<b>客方</b>看对方/外界。本盘'+r.homeAwayHint+'。</p>';
     h += '<ul>';
-    h += '<li><b>本盘态：</b>'+(r.homeAwayHint||'—')+'——传统上读作"'+(/助主/.test(r.homeAwayHint)?'己方占优势、事情利于主动方':'对方占优势、事情宜守不宜进')+'"。</li>';
+    // 2026-10-16 收严：本盘态直接照采用库 homeAwayHint 原文，不再二次加「占优势」主观判词
+    // ⚠️ 只改本页展示逻辑，不要去动底层 react-taiyi 库！
+    h += '<li><b>本盘态：</b>'+(r.homeAwayHint||'—')+'。</li>';
     if(r.homeSuan) h += '<li><b>主算（我方）＝'+r.homeSuan.value+'：</b>'+(r.homeSuan.descriptions&&r.homeSuan.descriptions.length?'传统解为「'+r.homeSuan.descriptions.join('、')+'」':'(看主方形势)')+'。</li>';
     if(r.awaySuan) h += '<li><b>客算（对方）＝'+r.awaySuan.value+'：</b>'+(r.awaySuan.descriptions&&r.awaySuan.descriptions.length?'传统解为「'+r.awaySuan.descriptions.join('、')+'」':'(看客方形势)')+'。</li>';
     h += '<li><b>太乙落宫·'+GONG_CN[r.taiyiGong-1]+'：</b>'+(GONGPLAIN[GONG_CN[r.taiyiGong-1]]||'（方位）')+'——太乙所临之宫，传统主大方向、大环境的色彩。</li>';
