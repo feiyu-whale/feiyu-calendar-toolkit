@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐲 干支·生肖·年号</title>
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { min-height:100%; background:linear-gradient(160deg,#1a1428 0%,#241a33 55%,#120e1c 100%); }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#e8e0f0;
+    padding:18px 14px 40px; display:flex; justify-content:center; user-select:none; }
+  #wrap { width:100%; max-width:560px; }
+  .back { display:inline-block; text-decoration:none; color:#9a8fc0; font-size:13px; margin-bottom:12px;
+    padding:6px 12px; border:1px solid #3a3050; border-radius:20px; }
+  h1 { font-size:20px; color:#c8b3ff; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:#8a7fb0; font-size:12px; margin-bottom:16px; }
+  .card { background:#1c1530; border:1px solid #3a3050; border-radius:12px; padding:14px; margin-bottom:12px; }
+  .lbl { font-size:11px; color:#8a7fb0; margin-bottom:9px; letter-spacing:1px; }
+  .f { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .f label { width:76px; font-size:13px; color:#c8b3ff; }
+  .f input, .f select { flex:1; background:#100b1c; border:1px solid #3a3050; border-radius:9px; padding:10px 11px;
+    color:#e8e0f0; font-size:14px; font-family:inherit; }
+  .f input:focus, .f select:focus { outline:none; border-color:#7a5fc0; }
+  .stat { display:flex; justify-content:space-between; padding:9px 12px; background:#100b1c; border-radius:9px;
+    margin-bottom:7px; font-size:14px; gap:10px; }
+  .stat .k { color:#9a8fc0; }
+  .stat .v { color:#b8a0ff; font-weight:700; font-family:ui-monospace,monospace; text-align:right; }
+  .ver { text-align:center; color:#2a2440; font-size:10px; margin-top:22px; }
+  .hint { font-size:12px; color:#6a5f90; line-height:1.6; margin-top:6px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <a class="back" href="../">← 回文科专区</a>
+  <h1>🐲 干支 · 生肖 · 纪年</h1>
+  <div class="sub">公历年份 → 干支/生肖（支持公元前）</div>
+
+  <div class="card">
+    <div class="lbl">输入年份</div>
+    <div class="f"><label>公元年份</label><input type="text" id="year" inputmode="numeric" value="2026"></div>
+    <div class="hint">支持任意年份（如 629 = 唐贞观三年；-221 表示公元前221年）</div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">结果</div>
+    <div id="out"></div>
+  </div>
+  <div class="ver">v1-干支生肖 20261016</div>
+</div>
+<script>
+// 依据：干支纪年标准对应——天干(10)地支(12)60年一循环；公历公元4年为"甲子"年（六十甲子起算）。
+//      生肖 = 地支对应（子鼠丑牛寅虎卯兔辰龙巳蛇午马未羊申猴酉鸡戌狗亥猪）。纯算法。
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+
+  var GAN = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+  var ZHI = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  var SX  = ["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+
+  // 生肖对应：地支索引 → 生肖（同索引）
+  function ganzhi(year){
+    // 公元4年 = 甲子。 (year-4) mod 60，负数需修正
+    var n = ((year - 4) % 60 + 60) % 60;
+    var g = n % 10, z = n % 12;
+    return { gan: GAN[g], zhi: ZHI[z], full: GAN[g]+ZHI[z], sx: SX[z], idx: n };
+  }
+
+  function render(){
+    var raw = $("year").value.trim();
+    if(raw === "" || !/^-?\d+$/.test(raw)){ $("out").innerHTML = "<span style='color:#8a7fb0'>输入年份</span>"; return; }
+    var y = parseInt(raw, 10);
+
+    // 处理公元前：公元前1年 = -1，需映射到天文纪年（0 = 前1年占位）
+    // 干支按连续年份排；对负年用 y+1（因无公元0年）
+    var gzYear = y >= 0 ? y : y + 1;
+    var gz = ganzhi(gzYear);
+
+    var label = y < 0 ? ("公元前 " + Math.abs(y) + " 年") : (y === 0 ? "（无公元0年）" : ("公元 " + y + " 年"));
+
+    var rows = [
+      ["年份", label],
+      ["干支", gz.full + " 年"],
+      ["生肖", gz.sx + " 年"],
+      ["天干", gz.gan],
+      ["地支", gz.zhi],
+    ];
+    $("out").innerHTML = rows.map(function(r){
+      return '<div class="stat"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';
+    }).join("");
+  }
+  $("year").addEventListener("input", render);
+  render();
+})();
+</script>
+</body>
+</html>
