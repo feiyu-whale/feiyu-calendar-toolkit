@@ -23,7 +23,10 @@
   .items { display:flex; flex-wrap:wrap; gap:8px; }
   .item { font-size:13px; color:#a9c8e0; background:#0c1a28; border:1px solid #23405c; border-radius:8px;
     padding:6px 11px; line-height:1.4; }
-  .item.soon { opacity:.72; }
+  a.item { text-decoration:none; color:#8fe0c0; border-color:#2e6f5e; }
+  .item.soon { opacity:1; color:#6b8fb3; background:#0a141e; border:1px dashed #2a3d50; cursor:default; }
+  .item.soon::after { content:" 待做"; font-size:10px; color:#4a6785; border:1px solid #2a3d50;
+    border-radius:6px; padding:0 5px; margin-left:4px; }
   .foot { max-width:720px; text-align:center; color:#3f5a75; font-size:12px; margin-top:20px; line-height:1.9;
     border:1px dashed #23405c; border-radius:12px; padding:16px; }
   .ver { text-align:center; color:#22383c; font-size:10px; margin-top:22px; }
@@ -42,12 +45,12 @@
     <div class="items">
       <a class="item" href="ohm/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 欧姆定律·功率</a>
       <a class="item" href="crc16/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ Modbus CRC16</a>
+      <a class="item" href="ampacity/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 电缆载流量计算</a>
       <a class="item" href="resistor/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 色环电阻</a>
       <a class="item" href="rcrl/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ RC/RL/LC 电路</a>
       <a class="item" href="ipcalc/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ IP/子网掩码</a>
       <span class="item soon">三相电计算</span>
-      <span class="item soon">导线选型·载流量</span>
-      <span class="item soon">断路器/接触器选型</span>
+      <span class="item soon">导线选型·载流量</span>      <span class="item soon">断路器/接触器选型</span>
       <span class="item soon">电机扭矩·转速·功率</span>
       <span class="item soon">星三角启动时间</span>
       <span class="item soon">变频器参数换算</span>

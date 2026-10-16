@@ -141,6 +141,32 @@ python3 -m http.server 8080
 
 > 一句话：**每个工具是一个自包含的小盒子，拔掉一个，别的照转。**
 
+### 🧰 想提 PR？用标准模板（StandardTool.js）
+
+**不必重写 UI**。本仓库有一个标准基类 `standard/StandardTool.js`，封装了**输入框排版 / 黑金按钮 / 结果输出 / 错误提示**。
+
+新增一个工具，只需一份配置 + 一个 `compute` 函数：
+
+```html
+<div id="app"></div>
+<script src="../../standard/StandardTool.js"></script>
+<script>
+(function(){
+  StandardTool.mount("#app", {
+    title: "电缆载流量计算器",
+    inputs: [
+      { key:"area", label:"截面积", unit:"mm²", type:"select", options:[...], default:2.5 },
+      { key:"temp", label:"环境温度", unit:"℃", type:"select", options:[...] },
+    ],
+    compute: function(v){ return { value: v.area * k, unit: "A" }; },
+    anchors: ["参考说明…"]
+  });
+})();
+</script>
+```
+
+参考实例：[`pro-tools/ampacity/`](pro-tools/ampacity/)（电缆载流量）。
+
 ---
 
 ## 🧮 算法与数据来源
