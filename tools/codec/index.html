@@ -64,60 +64,63 @@
   <div class="ver">v1-编码解码 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
-let mode = "b64";
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
+  let mode = "b64";
 
-function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
+  function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
+  function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
 
-function run(op){
-  const v = $("in").value;
-  $("out").className = "out";
-  if(op === "clr"){ $("in").value=""; $("out").textContent=""; $("emptyHint").style.display="block"; return; }
-  $("emptyHint").style.display = "none";
-  try {
-    if(mode === "b64"){
-      $("out").textContent = op==="enc" ? b64enc(v) : b64dec(v.trim());
-    } else if(mode === "url"){
-      $("out").textContent = op==="enc" ? encodeURIComponent(v) : decodeURIComponent(v.trim());
-    } else if(mode === "jwt"){
-      decodeJwt();
-    }
-  } catch(e){ $("out").className="out err"; $("out").textContent = "❌ " + e.message; }
-}
+  function run(op){
+    const v = $("in").value;
+    $("out").className = "out";
+    if(op === "clr"){ $("in").value=""; $("out").textContent=""; $("emptyHint").style.display="block"; return; }
+    $("emptyHint").style.display = "none";
+    try {
+      if(mode === "b64"){
+        $("out").textContent = op==="enc" ? b64enc(v) : b64dec(v.trim());
+      } else if(mode === "url"){
+        $("out").textContent = op==="enc" ? encodeURIComponent(v) : decodeURIComponent(v.trim());
+      } else if(mode === "jwt"){
+        decodeJwt();
+      }
+    } catch(e){ $("out").className="out err"; $("out").textContent = "❌ " + e.message; }
+  }
 
-function decodeJwt(){
-  const parts = $("in").value.trim().split(".");
-  if(parts.length < 2){ throw new Error("不是合法 JWT（需至少 header.payload 两段）"); }
-  const dec = seg => {
-    let s = seg.replace(/-/g,"+").replace(/_/g,"/");
-    while(s.length % 4) s += "=";
-    return JSON.parse(decodeURIComponent(escape(atob(s))));
-  };
-  const head = dec(parts[0]);
-  const pay = dec(parts[1]);
-  let html = "<div style='color:#9fe0ff'>Header</div><pre style='white-space:pre-wrap;color:#eaf4ff'>"+
-    JSON.stringify(head,null,2)+"</pre>";
-  html += "<div style='color:#9fe0ff;margin-top:8px'>Payload</div><pre style='white-space:pre-wrap;color:#eaf4ff'>"+
-    JSON.stringify(pay,null,2)+"</pre>";
-  if(pay.exp) html += "<div style='margin-top:8px'>⏰ exp：<b>"+new Date(pay.exp*1000).toLocaleString("zh-CN",{hour12:false})+"</b></div>";
-  if(pay.iat) html += "<div>🕐 iat：<b>"+new Date(pay.iat*1000).toLocaleString("zh-CN",{hour12:false})+"</b></div>";
-  if(parts.length === 3) html += "<div style='color:#6b8fb3;margin-top:8px;font-size:12px'>签名段：存在（不校验，仅解码）</div>";
-  $("out").innerHTML = html;
-}
+  function decodeJwt(){
+    const parts = $("in").value.trim().split(".");
+    if(parts.length < 2){ throw new Error("不是合法 JWT（需至少 header.payload 两段）"); }
+    const dec = seg => {
+      let s = seg.replace(/-/g,"+").replace(/_/g,"/");
+      while(s.length % 4) s += "=";
+      return JSON.parse(decodeURIComponent(escape(atob(s))));
+    };
+    const head = dec(parts[0]);
+    const pay = dec(parts[1]);
+    let html = "<div style='color:#9fe0ff'>Header</div><pre style='white-space:pre-wrap;color:#eaf4ff'>"+
+      JSON.stringify(head,null,2)+"</pre>";
+    html += "<div style='color:#9fe0ff;margin-top:8px'>Payload</div><pre style='white-space:pre-wrap;color:#eaf4ff'>"+
+      JSON.stringify(pay,null,2)+"</pre>";
+    if(pay.exp) html += "<div style='margin-top:8px'>⏰ exp：<b>"+new Date(pay.exp*1000).toLocaleString("zh-CN",{hour12:false})+"</b></div>";
+    if(pay.iat) html += "<div>🕐 iat：<b>"+new Date(pay.iat*1000).toLocaleString("zh-CN",{hour12:false})+"</b></div>";
+    if(parts.length === 3) html += "<div style='color:#6b8fb3;margin-top:8px;font-size:12px'>签名段：存在（不校验，仅解码）</div>";
+    $("out").innerHTML = html;
+  }
 
-$("tabs").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
-  mode = b.dataset.m;
-  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
-  $("ops").style.display = mode === "jwt" ? "none" : "flex";
-  const ph = {b64:"如 hello 世界 → aGVsbG8g5LiW55WM", url:"如 a b/中文 → a%20b%2F%E4%B8%AD%E6%96%87", jwt:"粘贴 JWT（三段以 . 分隔）"};
-  $("in").placeholder = ph[mode];
-  $("out").textContent = "";
-  $("emptyHint").style.display = "block";
-});
-$("ops").addEventListener("click", e => { const b=e.target.closest("button"); if(b) run(b.dataset.op); });
-$("in").addEventListener("input", () => { if(mode==="jwt") run("jwt"); });
+  $("tabs").addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    mode = b.dataset.m;
+    [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+    $("ops").style.display = mode === "jwt" ? "none" : "flex";
+    const ph = {b64:"如 hello 世界 → aGVsbG8g5LiW55WM", url:"如 a b/中文 → a%20b%2F%E4%B8%AD%E6%96%87", jwt:"粘贴 JWT（三段以 . 分隔）"};
+    $("in").placeholder = ph[mode];
+    $("out").textContent = "";
+    $("emptyHint").style.display = "block";
+  });
+  $("ops").addEventListener("click", e => { const b=e.target.closest("button"); if(b) run(b.dataset.op); });
+  $("in").addEventListener("input", () => { if(mode==="jwt") run("jwt"); });
+})();
 </script>
 </body>
 </html>

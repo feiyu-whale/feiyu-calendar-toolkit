@@ -53,39 +53,42 @@
   <div class="ver">v1-欧姆定律 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
-const ids = ["u","i","r","p"];
-function num(id){ const v = $(id).value.trim(); if(v==="") return null; const n = Number(v); return isNaN(n) ? null : n; }
-function set(id, v){ $(id).value = (v===null||!isFinite(v)) ? "" : (Math.round(v*1e6)/1e6); }
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
+  const ids = ["u","i","r","p"];
+  function num(id){ const v = $(id).value.trim(); if(v==="") return null; const n = Number(v); return isNaN(n) ? null : n; }
+  function set(id, v){ $(id).value = (v===null||!isFinite(v)) ? "" : (Math.round(v*1e6)/1e6); }
 
-function calc(src){
-  let u = num("u"), i = num("i"), r = num("r"), p = num("p");
-  const have = [u,i,r,p].filter(x => x!==null).length;
-  if(have < 2){ $("out").innerHTML = "<span style='color:#5b7a99'>至少填两个量</span>"; return; }
-  // 用最新的两个（越靠前越优先作为输入）——简单法：按缺失解方程
-  try {
-    if(u!==null && i!==null){ r=u/i; p=u*i; }
-    else if(u!==null && r!==null){ i=u/r; p=u*i; }
-    else if(u!==null && p!==null){ i=p/u; r=u/i; }
-    else if(i!==null && r!==null){ u=i*r; p=u*i; }
-    else if(i!==null && p!==null){ u=p/i; r=u/i; }
-    else if(r!==null && p!==null){ i=Math.sqrt(p/r); u=i*r; }
-  } catch(e){ $("out").innerHTML = "<span style='color:#e08'>无法计算</span>"; return; }
-  // 回填除了源以外的
-  const map = {u,i,r,p};
-  ids.forEach(k => { if(k !== src) set(k, map[k]); });
-  $("out").innerHTML =
-    row("电压 U", u, "V") + row("电流 I", i, "A") + row("电阻 R", r, "Ω") + row("功率 P", p, "W") +
-    row("换算", null, "") .replace('class="v">','class="v">') ;
-  // 额外：能耗提示
-  $("out").innerHTML = row("电压 U", u, "V")+row("电流 I", i, "A")+row("电阻 R", r, "Ω")+row("功率 P", p, "W");
-}
-function row(k, v, u){
-  if(v===null || !isFinite(v)) return "";
-  const n = Math.round(v*1e4)/1e4;
-  return `<div class="r"><span class="k">${k}</span><span class="v">${n} ${u}</span></div>`;
-}
-ids.forEach(id => $(id).addEventListener("input", () => calc(id)));
+  function calc(src){
+    let u = num("u"), i = num("i"), r = num("r"), p = num("p");
+    const have = [u,i,r,p].filter(x => x!==null).length;
+    if(have < 2){ $("out").innerHTML = "<span style='color:#5b7a99'>至少填两个量</span>"; return; }
+    // 用最新的两个（越靠前越优先作为输入）——简单法：按缺失解方程
+    try {
+      if(u!==null && i!==null){ r=u/i; p=u*i; }
+      else if(u!==null && r!==null){ i=u/r; p=u*i; }
+      else if(u!==null && p!==null){ i=p/u; r=u/i; }
+      else if(i!==null && r!==null){ u=i*r; p=u*i; }
+      else if(i!==null && p!==null){ u=p/i; r=u/i; }
+      else if(r!==null && p!==null){ i=Math.sqrt(p/r); u=i*r; }
+    } catch(e){ $("out").innerHTML = "<span style='color:#e08'>无法计算</span>"; return; }
+    // 回填除了源以外的
+    const map = {u,i,r,p};
+    ids.forEach(k => { if(k !== src) set(k, map[k]); });
+    $("out").innerHTML =
+      row("电压 U", u, "V") + row("电流 I", i, "A") + row("电阻 R", r, "Ω") + row("功率 P", p, "W") +
+      row("换算", null, "") .replace('class="v">','class="v">') ;
+    // 额外：能耗提示
+    $("out").innerHTML = row("电压 U", u, "V")+row("电流 I", i, "A")+row("电阻 R", r, "Ω")+row("功率 P", p, "W");
+  }
+  function row(k, v, u){
+    if(v===null || !isFinite(v)) return "";
+    const n = Math.round(v*1e4)/1e4;
+    return `<div class="r"><span class="k">${k}</span><span class="v">${n} ${u}</span></div>`;
+  }
+  ids.forEach(id => $(id).addEventListener("input", () => calc(id)));
+})();
 </script>
 </body>
 </html>

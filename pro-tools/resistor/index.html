@@ -65,106 +65,109 @@
   <div class="ver">v1-色环电阻 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
-// 色环标准：数字/倍率/误差
-const COLORS = [
-  {n:"黑",c:"#111", v:0, mul:1,     tol:null},
-  {n:"棕",c:"#6b3a1a", v:1, mul:10,  tol:"±1%"},
-  {n:"红",c:"#c0392b", v:2, mul:100, tol:"±2%"},
-  {n:"橙",c:"#e67e22", v:3, mul:1e3, tol:null},
-  {n:"黄",c:"#f1c40f", v:4, mul:1e4, tol:null},
-  {n:"绿",c:"#27ae60", v:5, mul:1e5, tol:"±0.5%"},
-  {n:"蓝",c:"#2980b9", v:6, mul:1e6, tol:"±0.25%"},
-  {n:"紫",c:"#8e44ad", v:7, mul:1e7, tol:"±0.1%"},
-  {n:"灰",c:"#7f8c8d", v:8, mul:1e8, tol:"±0.05%"},
-  {n:"白",c:"#ecf0f1", v:9, mul:1e9, tol:null},
-  {n:"金",c:"#c9a227", v:null, mul:1e-1, tol:"±5%"},
-  {n:"银",c:"#bdc3c7", v:null, mul:1e-2, tol:"±10%"},
-];
-let mode = 4;
-// 每环可用的颜色索引
-function optsFor(band, mode){
-  // band: 0..(mode-1); 最后一环=误差
-  const last = band === mode-1;
-  if(last) return [1,2,5,6,7,8,10,11]; // 棕红绿蓝紫灰金银
-  return [0,1,2,3,4,5,6,7,8,9]; // 0-9
-}
-let sel = [];
-
-function initSel(){
-  sel = [];
-  for(let i=0;i<mode;i++){
-    const o = optsFor(i, mode);
-    sel.push(i === mode-1 ? 10 : 1); // 默认 棕…金
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
+  // 色环标准：数字/倍率/误差
+  const COLORS = [
+    {n:"黑",c:"#111", v:0, mul:1,     tol:null},
+    {n:"棕",c:"#6b3a1a", v:1, mul:10,  tol:"±1%"},
+    {n:"红",c:"#c0392b", v:2, mul:100, tol:"±2%"},
+    {n:"橙",c:"#e67e22", v:3, mul:1e3, tol:null},
+    {n:"黄",c:"#f1c40f", v:4, mul:1e4, tol:null},
+    {n:"绿",c:"#27ae60", v:5, mul:1e5, tol:"±0.5%"},
+    {n:"蓝",c:"#2980b9", v:6, mul:1e6, tol:"±0.25%"},
+    {n:"紫",c:"#8e44ad", v:7, mul:1e7, tol:"±0.1%"},
+    {n:"灰",c:"#7f8c8d", v:8, mul:1e8, tol:"±0.05%"},
+    {n:"白",c:"#ecf0f1", v:9, mul:1e9, tol:null},
+    {n:"金",c:"#c9a227", v:null, mul:1e-1, tol:"±5%"},
+    {n:"银",c:"#bdc3c7", v:null, mul:1e-2, tol:"±10%"},
+  ];
+  let mode = 4;
+  // 每环可用的颜色索引
+  function optsFor(band, mode){
+    // band: 0..(mode-1); 最后一环=误差
+    const last = band === mode-1;
+    if(last) return [1,2,5,6,7,8,10,11]; // 棕红绿蓝紫灰金银
+    return [0,1,2,3,4,5,6,7,8,9]; // 0-9
   }
-  // 4环: [1,0,2,10]=10×100=1kΩ±5%; 简单点默认第2位黑
-  if(mode===4) sel = [1,0,2,10];
-  if(mode===5) sel = [1,0,0,2,10];
-  renderRows(); render();
-}
+  let sel = [];
 
-function renderRows(){
-  const names = mode===4 ? ["环1","环2","倍率","误差"] : ["环1","环2","环3","倍率","误差"];
-  let html = "";
-  for(let i=0;i<mode;i++){
-    const opts = optsFor(i, mode).map(ci => {
-      const cc = COLORS[ci];
-      return `<option value="${ci}" ${sel[i]===ci?"selected":""}>${cc.n}</option>`;
-    }).join("");
-    html += `<div class="row"><label>${names[i]}</label><select data-b="${i}">${opts}</select></div>`;
+  function initSel(){
+    sel = [];
+    for(let i=0;i<mode;i++){
+      const o = optsFor(i, mode);
+      sel.push(i === mode-1 ? 10 : 1); // 默认 棕…金
+    }
+    // 4环: [1,0,2,10]=10×100=1kΩ±5%; 简单点默认第2位黑
+    if(mode===4) sel = [1,0,2,10];
+    if(mode===5) sel = [1,0,0,2,10];
+    renderRows(); render();
   }
-  $("rows").innerHTML = html;
-  $("rows").querySelectorAll("select").forEach(s => s.addEventListener("change", e => {
-    const b = +e.target.dataset.b; sel[b] = +e.target.value; render();
-  }));
-}
 
-function digit(bands){
-  // 前 n-2 环是数字（4环:前2, 5环:前3）
-  const nd = mode - 2;
-  let v = 0;
-  for(let i=0;i<nd;i++) v = v*10 + COLORS[sel[i]].v;
-  return v;
-}
+  function renderRows(){
+    const names = mode===4 ? ["环1","环2","倍率","误差"] : ["环1","环2","环3","倍率","误差"];
+    let html = "";
+    for(let i=0;i<mode;i++){
+      const opts = optsFor(i, mode).map(ci => {
+        const cc = COLORS[ci];
+        return `<option value="${ci}" ${sel[i]===ci?"selected":""}>${cc.n}</option>`;
+      }).join("");
+      html += `<div class="row"><label>${names[i]}</label><select data-b="${i}">${opts}</select></div>`;
+    }
+    $("rows").innerHTML = html;
+    $("rows").querySelectorAll("select").forEach(s => s.addEventListener("change", e => {
+      const b = +e.target.dataset.b; sel[b] = +e.target.value; render();
+    }));
+  }
 
-function render(){
-  // 预览
-  let html = `<div class="lead"></div>`;
-  sel.forEach((ci,i) => {
-    const col = COLORS[ci];
-    html += `<div class="band" style="background:${col.c}">${col.n}</div>`;
+  function digit(bands){
+    // 前 n-2 环是数字（4环:前2, 5环:前3）
+    const nd = mode - 2;
+    let v = 0;
+    for(let i=0;i<nd;i++) v = v*10 + COLORS[sel[i]].v;
+    return v;
+  }
+
+  function render(){
+    // 预览
+    let html = `<div class="lead"></div>`;
+    sel.forEach((ci,i) => {
+      const col = COLORS[ci];
+      html += `<div class="band" style="background:${col.c}">${col.n}</div>`;
+    });
+    html += `<div class="lead"></div>`;
+    $("preview").innerHTML = html;
+
+    // 阻值
+    const nd = mode - 2;
+    const base = digit();
+    const mul = COLORS[sel[mode-2]].mul;
+    const tol = COLORS[sel[mode-1]].tol || "";
+    if(mul === null || tol === null && false){ }
+    const R = base * mul;
+    $("out").innerHTML = fmtR(R) + `<small>${base} × ${fmtMul(mul)} ${tol?("· "+tol):""}</small>`;
+  }
+
+  function fmtMul(m){
+    if(m>=1) return m.toExponential().replace("e+","×10^");
+    return m.toExponential().replace("e-","×10^-");
+  }
+  function fmtR(R){
+    if(R >= 1e9) return (R/1e9).toFixed(3).replace(/\.?0+$/,"")+" GΩ";
+    if(R >= 1e6) return (R/1e6).toFixed(3).replace(/\.?0+$/,"")+" MΩ";
+    if(R >= 1e3) return (R/1e3).toFixed(3).replace(/\.?0+$/,"")+" kΩ";
+    return (Math.round(R*1000)/1000)+" Ω";
+  }
+
+  $("modes").addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    mode = +b.dataset.m;
+    [...$("modes").children].forEach(x => x.classList.toggle("on", x===b));
+    initSel();
   });
-  html += `<div class="lead"></div>`;
-  $("preview").innerHTML = html;
-
-  // 阻值
-  const nd = mode - 2;
-  const base = digit();
-  const mul = COLORS[sel[mode-2]].mul;
-  const tol = COLORS[sel[mode-1]].tol || "";
-  if(mul === null || tol === null && false){ }
-  const R = base * mul;
-  $("out").innerHTML = fmtR(R) + `<small>${base} × ${fmtMul(mul)} ${tol?("· "+tol):""}</small>`;
-}
-
-function fmtMul(m){
-  if(m>=1) return m.toExponential().replace("e+","×10^");
-  return m.toExponential().replace("e-","×10^-");
-}
-function fmtR(R){
-  if(R >= 1e9) return (R/1e9).toFixed(3).replace(/\.?0+$/,"")+" GΩ";
-  if(R >= 1e6) return (R/1e6).toFixed(3).replace(/\.?0+$/,"")+" MΩ";
-  if(R >= 1e3) return (R/1e3).toFixed(3).replace(/\.?0+$/,"")+" kΩ";
-  return (Math.round(R*1000)/1000)+" Ω";
-}
-
-$("modes").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
-  mode = +b.dataset.m;
-  [...$("modes").children].forEach(x => x.classList.toggle("on", x===b));
   initSel();
-});
-initSel();
+})();
 </script>
 </body>
 </html>

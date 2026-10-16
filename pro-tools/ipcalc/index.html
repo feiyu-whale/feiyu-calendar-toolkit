@@ -62,77 +62,80 @@
   <div class="ver">v1-IP子网 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
 
-function ipToInt(s){
-  const p = s.trim().split(".");
-  if(p.length !== 4) throw new Error("IP 需为 4 段");
-  let n = 0;
-  for(const x of p){ const v = Number(x); if(!Number.isInteger(v)||v<0||v>255) throw new Error("每段需 0-255"); n = (n<<8)|v; }
-  return n >>> 0;
-}
-function intToIp(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join("."); }
-
-function parseMask(s){
-  s = s.trim();
-  let prefix;
-  if(s.startsWith("/")) prefix = Number(s.slice(1));
-  else if(/^\d+$/.test(s)) prefix = Number(s);
-  else {
-    const m = ipToInt(s);
-    // 校验连续
-    const bin = m.toString(2).padStart(32,"0");
-    if(!/^1*0*$/.test(bin)) throw new Error("掩码不连续");
-    prefix = bin.split("0")[0].length;
+  function ipToInt(s){
+    const p = s.trim().split(".");
+    if(p.length !== 4) throw new Error("IP 需为 4 段");
+    let n = 0;
+    for(const x of p){ const v = Number(x); if(!Number.isInteger(v)||v<0||v>255) throw new Error("每段需 0-255"); n = (n<<8)|v; }
+    return n >>> 0;
   }
-  if(!Number.isInteger(prefix) || prefix<0 || prefix>32) throw new Error("前缀需 0-32");
-  return prefix;
-}
-function prefixToInt(p){ return p === 0 ? 0 : (0xFFFFFFFF << (32-p)) >>> 0; }
+  function intToIp(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join("."); }
 
-function calc(){
-  $("out").className = "";
-  try {
-    const ip = ipToInt($("ip").value);
-    const prefix = parseMask($("mask").value);
-    const maskI = prefixToInt(prefix);
-    const wildcard = (~maskI) >>> 0;
-    const network = (ip & maskI) >>> 0;
-    const broadcast = (network | wildcard) >>> 0;
-    const total = Math.pow(2, 32-prefix);
-    const hosts = total <= 2 ? total : total - 2;
+  function parseMask(s){
+    s = s.trim();
+    let prefix;
+    if(s.startsWith("/")) prefix = Number(s.slice(1));
+    else if(/^\d+$/.test(s)) prefix = Number(s);
+    else {
+      const m = ipToInt(s);
+      // 校验连续
+      const bin = m.toString(2).padStart(32,"0");
+      if(!/^1*0*$/.test(bin)) throw new Error("掩码不连续");
+      prefix = bin.split("0")[0].length;
+    }
+    if(!Number.isInteger(prefix) || prefix<0 || prefix>32) throw new Error("前缀需 0-32");
+    return prefix;
+  }
+  function prefixToInt(p){ return p === 0 ? 0 : (0xFFFFFFFF << (32-p)) >>> 0; }
 
-    let firstHost, lastHost;
-    if(total <= 2){ firstHost = network; lastHost = broadcast; }
-    else { firstHost = (network+1)>>>0; lastHost = (broadcast-1)>>>0; }
+  function calc(){
+    $("out").className = "";
+    try {
+      const ip = ipToInt($("ip").value);
+      const prefix = parseMask($("mask").value);
+      const maskI = prefixToInt(prefix);
+      const wildcard = (~maskI) >>> 0;
+      const network = (ip & maskI) >>> 0;
+      const broadcast = (network | wildcard) >>> 0;
+      const total = Math.pow(2, 32-prefix);
+      const hosts = total <= 2 ? total : total - 2;
 
-    const rows = [
-      ["IP 地址", intToIp(ip)],
-      ["CIDR", "/" + prefix],
-      ["子网掩码", intToIp(maskI)],
-      ["反掩码(Wildcard)", intToIp(wildcard)],
-      ["网络地址", intToIp(network)],
-      ["广播地址", intToIp(broadcast)],
-      ["可用主机范围", total<=2 ? intToIp(network)+" ~ "+intToIp(broadcast) : intToIp(firstHost)+" ~ "+intToIp(lastHost)],
-      ["可用主机数", String(hosts)],
-      ["地址总数", String(total)],
-      ["IP 类别", ipClass(ip)],
-    ];
-    $("out").innerHTML = rows.map(([k,v]) => `<div class="r"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
-  } catch(e){ $("out").className = "err"; $("out").innerHTML = "❌ " + e.message; }
-}
-function ipClass(ip){
-  const f = (ip>>>24)&255;
-  if(f < 128) return "A 类 (1-126)";
-  if(f < 192) return "B 类 (128-191)";
-  if(f < 224) return "C 类 (192-223)";
-  if(f < 240) return "D 类 组播";
-  return "E 类 保留";
-}
+      let firstHost, lastHost;
+      if(total <= 2){ firstHost = network; lastHost = broadcast; }
+      else { firstHost = (network+1)>>>0; lastHost = (broadcast-1)>>>0; }
 
-["ip","mask"].forEach(id => $(id).addEventListener("input", calc));
-$("quick").addEventListener("change", e => { if(e.target.value){ $("mask").value = e.target.value; calc(); } });
-calc();
+      const rows = [
+        ["IP 地址", intToIp(ip)],
+        ["CIDR", "/" + prefix],
+        ["子网掩码", intToIp(maskI)],
+        ["反掩码(Wildcard)", intToIp(wildcard)],
+        ["网络地址", intToIp(network)],
+        ["广播地址", intToIp(broadcast)],
+        ["可用主机范围", total<=2 ? intToIp(network)+" ~ "+intToIp(broadcast) : intToIp(firstHost)+" ~ "+intToIp(lastHost)],
+        ["可用主机数", String(hosts)],
+        ["地址总数", String(total)],
+        ["IP 类别", ipClass(ip)],
+      ];
+      $("out").innerHTML = rows.map(([k,v]) => `<div class="r"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+    } catch(e){ $("out").className = "err"; $("out").innerHTML = "❌ " + e.message; }
+  }
+  function ipClass(ip){
+    const f = (ip>>>24)&255;
+    if(f < 128) return "A 类 (1-126)";
+    if(f < 192) return "B 类 (128-191)";
+    if(f < 224) return "C 类 (192-223)";
+    if(f < 240) return "D 类 组播";
+    return "E 类 保留";
+  }
+
+  ["ip","mask"].forEach(id => $(id).addEventListener("input", calc));
+  $("quick").addEventListener("change", e => { if(e.target.value){ $("mask").value = e.target.value; calc(); } });
+  calc();
+})();
 </script>
 </body>
 </html>

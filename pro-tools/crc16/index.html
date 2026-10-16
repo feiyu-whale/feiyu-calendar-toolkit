@@ -54,57 +54,60 @@
   <div class="ver">v1-CRC16 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
 
-function parseHex(s){
-  const clean = s.replace(/[^0-9a-fA-F]/g,"");
-  if(clean.length % 2 !== 0) throw new Error("十六进制位数需为偶数");
-  const bytes = [];
-  for(let i=0;i<clean.length;i+=2) bytes.push(parseInt(clean.slice(i,i+2),16));
-  if(!bytes.length) throw new Error("请输入字节");
-  return bytes;
-}
-
-// Modbus CRC16（多项式 0xA001，初值 0xFFFF）
-function crc16(bytes){
-  let crc = 0xFFFF;
-  for(const b of bytes){
-    crc ^= b;
-    for(let i=0;i<8;i++){
-      if(crc & 1) crc = (crc >> 1) ^ 0xA001;
-      else crc >>= 1;
-    }
+  function parseHex(s){
+    const clean = s.replace(/[^0-9a-fA-F]/g,"");
+    if(clean.length % 2 !== 0) throw new Error("十六进制位数需为偶数");
+    const bytes = [];
+    for(let i=0;i<clean.length;i+=2) bytes.push(parseInt(clean.slice(i,i+2),16));
+    if(!bytes.length) throw new Error("请输入字节");
+    return bytes;
   }
-  return crc & 0xFFFF;
-}
-const hex2 = n => n.toString(16).toUpperCase().padStart(2,"0");
 
-function doCalc(){
-  $("out").className = "out";
-  try {
-    const bytes = parseHex($("in").value);
-    const crc = crc16(bytes);
-    const lo = crc & 0xFF, hi = (crc >> 8) & 0xFF;
-    $("out").innerHTML = "0x" + hex2(hi) + hex2(lo) +
-      `<small>低字节在前(Modbus): ${hex2(lo)} ${hex2(hi)} &nbsp;|&nbsp; 高字节在前: ${hex2(hi)} ${hex2(lo)}</small>`;
-  } catch(e){ $("out").className = "out err"; $("out").textContent = "❌ " + e.message; }
-}
+  // Modbus CRC16（多项式 0xA001，初值 0xFFFF）
+  function crc16(bytes){
+    let crc = 0xFFFF;
+    for(const b of bytes){
+      crc ^= b;
+      for(let i=0;i<8;i++){
+        if(crc & 1) crc = (crc >> 1) ^ 0xA001;
+        else crc >>= 1;
+      }
+    }
+    return crc & 0xFFFF;
+  }
+  const hex2 = n => n.toString(16).toUpperCase().padStart(2,"0");
 
-function doAppend(){
-  try {
-    const bytes = parseHex($("in").value);
-    const crc = crc16(bytes);
-    const lo = crc & 0xFF, hi = (crc >> 8) & 0xFF;
-    const all = bytes.concat([lo, hi]);
-    $("in").value = all.map(hex2).join(" ");
-    doCalc();
-  } catch(e){ $("out").className = "out err"; $("out").textContent = "❌ " + e.message; }
-}
+  function doCalc(){
+    $("out").className = "out";
+    try {
+      const bytes = parseHex($("in").value);
+      const crc = crc16(bytes);
+      const lo = crc & 0xFF, hi = (crc >> 8) & 0xFF;
+      $("out").innerHTML = "0x" + hex2(hi) + hex2(lo) +
+        `<small>低字节在前(Modbus): ${hex2(lo)} ${hex2(hi)} &nbsp;|&nbsp; 高字节在前: ${hex2(hi)} ${hex2(lo)}</small>`;
+    } catch(e){ $("out").className = "out err"; $("out").textContent = "❌ " + e.message; }
+  }
 
-$("calc").onclick = doCalc;
-$("append").onclick = doAppend;
-$("in").addEventListener("input", doCalc);
-doCalc();
+  function doAppend(){
+    try {
+      const bytes = parseHex($("in").value);
+      const crc = crc16(bytes);
+      const lo = crc & 0xFF, hi = (crc >> 8) & 0xFF;
+      const all = bytes.concat([lo, hi]);
+      $("in").value = all.map(hex2).join(" ");
+      doCalc();
+    } catch(e){ $("out").className = "out err"; $("out").textContent = "❌ " + e.message; }
+  }
+
+  $("calc").onclick = doCalc;
+  $("append").onclick = doAppend;
+  $("in").addEventListener("input", doCalc);
+  doCalc();
+})();
 </script>
 </body>
 </html>

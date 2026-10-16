@@ -87,148 +87,151 @@
 
 <script src="data.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-let curCat = "length";
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
+  let curCat = "length";
 
-function unitName(k){ return (MEASURE_UNIT_NAMES[k] || k); }
-function fmt(n){
-  if (!isFinite(n)) return "—";
-  if (n === 0) return "0";
-  const a = Math.abs(n);
-  if (a >= 1e15 || a < 1e-9) return n.toExponential(6);
-  if (a >= 1) return (+n.toFixed(6)).toString();
-  return (+n.toPrecision(6)).toString();
-}
-
-function renderTabs(){
-  $("tabs").innerHTML = "";
-  Object.keys(MEASURE_DATA).forEach(cat => {
-    const b = document.createElement("button");
-    b.textContent = MEASURE_CAT_NAMES[cat] || cat;
-    if (cat === curCat) b.className = "on";
-    b.onclick = () => { curCat = cat; buildAll(); };
-    $("tabs").appendChild(b);
-  });
-}
-
-function fillGroups(sel, keep){
-  const cat = MEASURE_DATA[curCat];
-  const prev = keep ? sel.value : null;
-  sel.innerHTML = "";
-  Object.keys(cat.groups).forEach(gid => {
-    const o = document.createElement("option");
-    o.value = gid; o.textContent = cat.groups[gid].name;
-    sel.appendChild(o);
-  });
-  if (prev && cat.groups[prev]) sel.value = prev;
-}
-
-function fillUnits(sel, groupId, keep){
-  const cat = MEASURE_DATA[curCat];
-  const prev = keep ? sel.value : null;
-  sel.innerHTML = "";
-  const units = cat.groups[groupId].units;
-  Object.keys(units).forEach(u => {
-    const o = document.createElement("option");
-    o.value = u; o.textContent = unitName(u);
-    sel.appendChild(o);
-  });
-  if (prev && units[prev] != null) sel.value = prev;
-}
-
-function buildAll(){
-  renderTabs();
-  fillGroups($("srcGroup"));
-  fillGroups($("tgtGroup"));
-  // 默认：源=第一个非公制朝代，目标=公制(现代)；若没有则前后
-  const cat = MEASURE_DATA[curCat];
-  const gids = Object.keys(cat.groups);
-  const modernIdx = gids.indexOf("modern");
-  $("srcGroup").value = gids.find(g => g !== "modern") || gids[0];
-  if (modernIdx >= 0) $("tgtGroup").value = "modern";
-  fillUnits($("srcUnit"), $("srcGroup").value);
-  fillUnits($("tgtUnit"), $("tgtGroup").value);
-  // 默认选一个"代表单位"（尺/升/斤优先）
-  pickDefaultUnit($("srcUnit"), ["chi","sheng","jin","liang","dou","cun"]);
-  pickDefaultUnit($("tgtUnit"), ["cm","ml","g","m","l","kg"]);
-  calc();
-  renderAnchor();
-}
-
-function pickDefaultUnit(sel, prefs){
-  for (const p of prefs) {
-    if ([...sel.options].some(o => o.value === p)) { sel.value = p; return; }
+  function unitName(k){ return (MEASURE_UNIT_NAMES[k] || k); }
+  function fmt(n){
+    if (!isFinite(n)) return "—";
+    if (n === 0) return "0";
+    const a = Math.abs(n);
+    if (a >= 1e15 || a < 1e-9) return n.toExponential(6);
+    if (a >= 1) return (+n.toFixed(6)).toString();
+    return (+n.toPrecision(6)).toString();
   }
-}
 
-function calc(){
-  const cat = MEASURE_DATA[curCat];
-  const sg = $("srcGroup").value, su = $("srcUnit").value;
-  const tg = $("tgtGroup").value, tu = $("tgtUnit").value;
-  const v = parseFloat($("srcVal").value);
-  const sUnits = cat.groups[sg]?.units || {};
-  const tUnits = cat.groups[tg]?.units || {};
-  if (isNaN(v) || sUnits[su] == null || tUnits[tu] == null) {
-    $("tgtVal").value = "";
-    $("hint").innerHTML = "";
-    return;
+  function renderTabs(){
+    $("tabs").innerHTML = "";
+    Object.keys(MEASURE_DATA).forEach(cat => {
+      const b = document.createElement("button");
+      b.textContent = MEASURE_CAT_NAMES[cat] || cat;
+      if (cat === curCat) b.className = "on";
+      b.onclick = () => { curCat = cat; buildAll(); };
+      $("tabs").appendChild(b);
+    });
   }
-  const baseVal = v * sUnits[su];               // 转到基准单位
-  const out = baseVal / tUnits[tu];             // 从基准转到目标
-  $("tgtVal").value = fmt(out);
-  const sName = cat.groups[sg].name, tName = cat.groups[tg].name;
-  $("hint").innerHTML = sName + " <b>" + v + " " + unitName(su) + "</b> = "
-    + tName + " <b>" + fmt(out) + " " + unitName(tu) + "</b>";
-}
 
-function renderAnchor(){
-  const cat = MEASURE_DATA[curCat];
-  const u = cat.baseKey;
-  let rows = "";
-  Object.keys(cat.groups).forEach(gid => {
-    const g = cat.groups[gid];
-    if (gid === "modern") return;
-    if (g.units[u] != null) {
-      rows += "<div>「" + g.name + "」 1 " + unitName(u) + " = 基准 1 " + unitName(u)
-        + "（该制式中 1 " + unitName(u) + " ≈ " + fmt(g.units[u]) + " " + unitName(u) + "）</div>";
+  function fillGroups(sel, keep){
+    const cat = MEASURE_DATA[curCat];
+    const prev = keep ? sel.value : null;
+    sel.innerHTML = "";
+    Object.keys(cat.groups).forEach(gid => {
+      const o = document.createElement("option");
+      o.value = gid; o.textContent = cat.groups[gid].name;
+      sel.appendChild(o);
+    });
+    if (prev && cat.groups[prev]) sel.value = prev;
+  }
+
+  function fillUnits(sel, groupId, keep){
+    const cat = MEASURE_DATA[curCat];
+    const prev = keep ? sel.value : null;
+    sel.innerHTML = "";
+    const units = cat.groups[groupId].units;
+    Object.keys(units).forEach(u => {
+      const o = document.createElement("option");
+      o.value = u; o.textContent = unitName(u);
+      sel.appendChild(o);
+    });
+    if (prev && units[prev] != null) sel.value = prev;
+  }
+
+  function buildAll(){
+    renderTabs();
+    fillGroups($("srcGroup"));
+    fillGroups($("tgtGroup"));
+    // 默认：源=第一个非公制朝代，目标=公制(现代)；若没有则前后
+    const cat = MEASURE_DATA[curCat];
+    const gids = Object.keys(cat.groups);
+    const modernIdx = gids.indexOf("modern");
+    $("srcGroup").value = gids.find(g => g !== "modern") || gids[0];
+    if (modernIdx >= 0) $("tgtGroup").value = "modern";
+    fillUnits($("srcUnit"), $("srcGroup").value);
+    fillUnits($("tgtUnit"), $("tgtGroup").value);
+    // 默认选一个"代表单位"（尺/升/斤优先）
+    pickDefaultUnit($("srcUnit"), ["chi","sheng","jin","liang","dou","cun"]);
+    pickDefaultUnit($("tgtUnit"), ["cm","ml","g","m","l","kg"]);
+    calc();
+    renderAnchor();
+  }
+
+  function pickDefaultUnit(sel, prefs){
+    for (const p of prefs) {
+      if ([...sel.options].some(o => o.value === p)) { sel.value = p; return; }
     }
-  });
-  // 更直观：给出各朝代"一尺/一升/一斤 = 多少公制"
-  const anchorUnit = { length:"chi", volume:"sheng", weight:"jin" }[curCat];
-  const anchorBase = { length:"cm", volume:"ml", weight:"g" }[curCat];
-  let better = "<h3>各朝代「1 " + unitName(anchorUnit) + "」≈ 公制</h3>";
-  Object.keys(cat.groups).forEach(gid => {
-    const g = cat.groups[gid];
-    const f = g.units[anchorUnit];
-    if (f != null) better += "<div>" + g.name + "：1 " + unitName(anchorUnit)
-      + " ≈ <span class='v'>" + fmt(f) + "</span> " + unitName(anchorBase) + "</div>";
-  });
-  $("anchor").innerHTML = better;
-}
+  }
 
-// 事件
-["srcGroup","srcUnit","tgtGroup","tgtUnit","srcVal"].forEach(id => {
-  $(id).addEventListener("input", () => {
-    if (id === "srcGroup") fillUnits($("srcUnit"), $("srcGroup").value);
-    if (id === "tgtGroup") fillUnits($("tgtUnit"), $("tgtGroup").value);
-    calc();
-  });
-  $(id).addEventListener("change", () => {
-    if (id === "srcGroup") fillUnits($("srcUnit"), $("srcGroup").value);
-    if (id === "tgtGroup") fillUnits($("tgtUnit"), $("tgtGroup").value);
-    calc();
-  });
-});
-$("swap").onclick = () => {
-  const sg=$("srcGroup").value, su=$("srcUnit").value, sv=$("srcVal").value;
-  $("srcGroup").value=$("tgtGroup").value; fillUnits($("srcUnit"),$("srcGroup").value);
-  $("tgtGroup").value=sg; fillUnits($("tgtUnit"),$("tgtGroup").value);
-  $("srcUnit").value=$("tgtUnit").value; $("tgtUnit").value=su;
-  $("srcVal").value=$("tgtVal").value || sv;
-  calc();
-};
+  function calc(){
+    const cat = MEASURE_DATA[curCat];
+    const sg = $("srcGroup").value, su = $("srcUnit").value;
+    const tg = $("tgtGroup").value, tu = $("tgtUnit").value;
+    const v = parseFloat($("srcVal").value);
+    const sUnits = cat.groups[sg]?.units || {};
+    const tUnits = cat.groups[tg]?.units || {};
+    if (isNaN(v) || sUnits[su] == null || tUnits[tu] == null) {
+      $("tgtVal").value = "";
+      $("hint").innerHTML = "";
+      return;
+    }
+    const baseVal = v * sUnits[su];               // 转到基准单位
+    const out = baseVal / tUnits[tu];             // 从基准转到目标
+    $("tgtVal").value = fmt(out);
+    const sName = cat.groups[sg].name, tName = cat.groups[tg].name;
+    $("hint").innerHTML = sName + " <b>" + v + " " + unitName(su) + "</b> = "
+      + tName + " <b>" + fmt(out) + " " + unitName(tu) + "</b>";
+  }
 
-buildAll();
+  function renderAnchor(){
+    const cat = MEASURE_DATA[curCat];
+    const u = cat.baseKey;
+    let rows = "";
+    Object.keys(cat.groups).forEach(gid => {
+      const g = cat.groups[gid];
+      if (gid === "modern") return;
+      if (g.units[u] != null) {
+        rows += "<div>「" + g.name + "」 1 " + unitName(u) + " = 基准 1 " + unitName(u)
+          + "（该制式中 1 " + unitName(u) + " ≈ " + fmt(g.units[u]) + " " + unitName(u) + "）</div>";
+      }
+    });
+    // 更直观：给出各朝代"一尺/一升/一斤 = 多少公制"
+    const anchorUnit = { length:"chi", volume:"sheng", weight:"jin" }[curCat];
+    const anchorBase = { length:"cm", volume:"ml", weight:"g" }[curCat];
+    let better = "<h3>各朝代「1 " + unitName(anchorUnit) + "」≈ 公制</h3>";
+    Object.keys(cat.groups).forEach(gid => {
+      const g = cat.groups[gid];
+      const f = g.units[anchorUnit];
+      if (f != null) better += "<div>" + g.name + "：1 " + unitName(anchorUnit)
+        + " ≈ <span class='v'>" + fmt(f) + "</span> " + unitName(anchorBase) + "</div>";
+    });
+    $("anchor").innerHTML = better;
+  }
+
+  // 事件
+  ["srcGroup","srcUnit","tgtGroup","tgtUnit","srcVal"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      if (id === "srcGroup") fillUnits($("srcUnit"), $("srcGroup").value);
+      if (id === "tgtGroup") fillUnits($("tgtUnit"), $("tgtGroup").value);
+      calc();
+    });
+    $(id).addEventListener("change", () => {
+      if (id === "srcGroup") fillUnits($("srcUnit"), $("srcGroup").value);
+      if (id === "tgtGroup") fillUnits($("tgtUnit"), $("tgtGroup").value);
+      calc();
+    });
+  });
+  $("swap").onclick = () => {
+    const sg=$("srcGroup").value, su=$("srcUnit").value, sv=$("srcVal").value;
+    $("srcGroup").value=$("tgtGroup").value; fillUnits($("srcUnit"),$("srcGroup").value);
+    $("tgtGroup").value=sg; fillUnits($("tgtUnit"),$("tgtGroup").value);
+    $("srcUnit").value=$("tgtUnit").value; $("tgtUnit").value=su;
+    $("srcVal").value=$("tgtVal").value || sv;
+    calc();
+  };
+
+  buildAll();
+})();
 </script>
 </body>
 </html>

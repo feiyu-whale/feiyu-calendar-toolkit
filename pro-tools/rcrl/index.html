@@ -58,76 +58,79 @@
   <div class="ver">v1-RC/RL/LC 20261016</div>
 </div>
 <script>
-const $ = id => document.getElementById(id);
-let mode = "rc";
+(function(){
+'use strict';
+  const $ = id => document.getElementById(id);
+  let mode = "rc";
 
-// 工程单位换算表（值 → SI）
-const UNITS = {
-  R:  [["Ω",1],["kΩ",1e3],["MΩ",1e6]],
-  C:  [["F",1],["mF",1e-3],["µF",1e-6],["nF",1e-9],["pF",1e-12]],
-  L:  [["H",1],["mH",1e-3],["µH",1e-6]],
-  freq:[["Hz",1],["kHz",1e3],["MHz",1e6]],
-};
+  // 工程单位换算表（值 → SI）
+  const UNITS = {
+    R:  [["Ω",1],["kΩ",1e3],["MΩ",1e6]],
+    C:  [["F",1],["mF",1e-3],["µF",1e-6],["nF",1e-9],["pF",1e-12]],
+    L:  [["H",1],["mH",1e-3],["µH",1e-6]],
+    freq:[["Hz",1],["kHz",1e3],["MHz",1e6]],
+  };
 
-function field(id, label, unitKey, defUnit){
-  const opts = UNITS[unitKey].map(([n])=>(`<option>${n}</option>`)).join("");
-  return `<div class="f"><label>${label}</label><input type="text" id="${id}" inputmode="decimal">
-    <select id="${id}u" style="flex:0 0 84px">${opts}</select></div>`;
-}
-
-const LAYOUT = {
-  rc: { fields:[["R","电阻 R","R"],["C","电容 C","C"]], vals:(v)=>{ const t=v.R*v.C;
-    return [["时间常数 τ = RC", fmtT(t)],["充电到 63.2%（1τ）", fmtT(t)],["到 99.3%（5τ）", fmtT(5*t)],["截止频率 fc", fmtHz(1/(2*Math.PI*t))]]; } },
-  rl: { fields:[["R","电阻 R","R"],["L","电感 L","L"]], vals:(v)=>{ const t=v.L/v.R;
-    return [["时间常数 τ = L/R", fmtT(t)],["到 63.2%（1τ）", fmtT(t)],["到 99.3%（5τ）", fmtT(5*t)],["截止频率 fc", fmtHz(v.R/(2*Math.PI*v.L))]]; } },
-  lc: { fields:[["L","电感 L","L"],["C","电容 C","C"]], vals:(v)=>{ const f=1/(2*Math.PI*Math.sqrt(v.L*v.C));
-    return [["谐振频率 f", fmtHz(f)],["角频率 ω", (2*Math.PI*f).toExponential(4)+" rad/s"],["周期 T", fmtT(1/f)],["谐振条件", "XL = XC"]]; } },
-};
-
-function fmtT(t){ // 秒
-  if(t >= 1) return t.toFixed(4).replace(/\.?0+$/,"")+" s";
-  if(t >= 1e-3) return (t*1e3).toFixed(4).replace(/\.?0+$/,"")+" ms";
-  if(t >= 1e-6) return (t*1e6).toFixed(4).replace(/\.?0+$/,"")+" µs";
-  return (t*1e9).toFixed(4).replace(/\.?0+$/,"")+" ns";
-}
-function fmtHz(f){
-  if(f >= 1e6) return (f/1e6).toFixed(4).replace(/\.?0+$/,"")+" MHz";
-  if(f >= 1e3) return (f/1e3).toFixed(4).replace(/\.?0+$/,"")+" kHz";
-  return f.toFixed(4).replace(/\.?0+$/,"")+" Hz";
-}
-
-function build(){
-  const cfg = LAYOUT[mode];
-  $("inputs").innerHTML = cfg.fields.map(f => field(f[0], f[1], f[2])).join("");
-  // 默认单位选中间档
-  cfg.fields.forEach(f => {
-    const arr = UNITS[f[2]];
-    $(f[0]+"u").selectedIndex = Math.min(1, arr.length-1);
-  });
-  $("hint").textContent = {rc:"τ=RC：电容充电/放电的时间尺度", rl:"τ=L/R：电感电流建立的时间尺度", lc:"f=1/(2π√LC)：LC 谐振频率"}[mode];
-  calc();
-  cfg.fields.forEach(f => { $(f[0]).addEventListener("input", calc); $(f[0]+"u").addEventListener("change", calc); });
-}
-
-function calc(){
-  const cfg = LAYOUT[mode];
-  const v = {};
-  for(const [id] of cfg.fields){
-    const x = parseFloat($(id).value);
-    if(isNaN(x)){ $("out").innerHTML = "<span style='color:#5b7a99'>填入参数自动计算</span>"; return; }
-    const ui = $(id+"u").selectedIndex;
-    v[id] = x * UNITS[cfg.fields.find(f=>f[0]===id)[2]][ui][1];
+  function field(id, label, unitKey, defUnit){
+    const opts = UNITS[unitKey].map(([n])=>(`<option>${n}</option>`)).join("");
+    return `<div class="f"><label>${label}</label><input type="text" id="${id}" inputmode="decimal">
+      <select id="${id}u" style="flex:0 0 84px">${opts}</select></div>`;
   }
-  $("out").innerHTML = cfg.vals(v).map(([k,val]) => `<div class="r"><span class="k">${k}</span><span class="v">${val}</span></div>`).join("");
-}
 
-$("tabs").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
-  mode = b.dataset.m;
-  [...$("tabs").children].forEach(x => x.classList.toggle("on", x===b));
+  const LAYOUT = {
+    rc: { fields:[["R","电阻 R","R"],["C","电容 C","C"]], vals:(v)=>{ const t=v.R*v.C;
+      return [["时间常数 τ = RC", fmtT(t)],["充电到 63.2%（1τ）", fmtT(t)],["到 99.3%（5τ）", fmtT(5*t)],["截止频率 fc", fmtHz(1/(2*Math.PI*t))]]; } },
+    rl: { fields:[["R","电阻 R","R"],["L","电感 L","L"]], vals:(v)=>{ const t=v.L/v.R;
+      return [["时间常数 τ = L/R", fmtT(t)],["到 63.2%（1τ）", fmtT(t)],["到 99.3%（5τ）", fmtT(5*t)],["截止频率 fc", fmtHz(v.R/(2*Math.PI*v.L))]]; } },
+    lc: { fields:[["L","电感 L","L"],["C","电容 C","C"]], vals:(v)=>{ const f=1/(2*Math.PI*Math.sqrt(v.L*v.C));
+      return [["谐振频率 f", fmtHz(f)],["角频率 ω", (2*Math.PI*f).toExponential(4)+" rad/s"],["周期 T", fmtT(1/f)],["谐振条件", "XL = XC"]]; } },
+  };
+
+  function fmtT(t){ // 秒
+    if(t >= 1) return t.toFixed(4).replace(/\.?0+$/,"")+" s";
+    if(t >= 1e-3) return (t*1e3).toFixed(4).replace(/\.?0+$/,"")+" ms";
+    if(t >= 1e-6) return (t*1e6).toFixed(4).replace(/\.?0+$/,"")+" µs";
+    return (t*1e9).toFixed(4).replace(/\.?0+$/,"")+" ns";
+  }
+  function fmtHz(f){
+    if(f >= 1e6) return (f/1e6).toFixed(4).replace(/\.?0+$/,"")+" MHz";
+    if(f >= 1e3) return (f/1e3).toFixed(4).replace(/\.?0+$/,"")+" kHz";
+    return f.toFixed(4).replace(/\.?0+$/,"")+" Hz";
+  }
+
+  function build(){
+    const cfg = LAYOUT[mode];
+    $("inputs").innerHTML = cfg.fields.map(f => field(f[0], f[1], f[2])).join("");
+    // 默认单位选中间档
+    cfg.fields.forEach(f => {
+      const arr = UNITS[f[2]];
+      $(f[0]+"u").selectedIndex = Math.min(1, arr.length-1);
+    });
+    $("hint").textContent = {rc:"τ=RC：电容充电/放电的时间尺度", rl:"τ=L/R：电感电流建立的时间尺度", lc:"f=1/(2π√LC)：LC 谐振频率"}[mode];
+    calc();
+    cfg.fields.forEach(f => { $(f[0]).addEventListener("input", calc); $(f[0]+"u").addEventListener("change", calc); });
+  }
+
+  function calc(){
+    const cfg = LAYOUT[mode];
+    const v = {};
+    for(const [id] of cfg.fields){
+      const x = parseFloat($(id).value);
+      if(isNaN(x)){ $("out").innerHTML = "<span style='color:#5b7a99'>填入参数自动计算</span>"; return; }
+      const ui = $(id+"u").selectedIndex;
+      v[id] = x * UNITS[cfg.fields.find(f=>f[0]===id)[2]][ui][1];
+    }
+    $("out").innerHTML = cfg.vals(v).map(([k,val]) => `<div class="r"><span class="k">${k}</span><span class="v">${val}</span></div>`).join("");
+  }
+
+  $("tabs").addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    mode = b.dataset.m;
+    [...$("tabs").children].forEach(x => x.classList.toggle("on", x===b));
+    build();
+  });
   build();
-});
-build();
+})();
 </script>
 </body>
 </html>
