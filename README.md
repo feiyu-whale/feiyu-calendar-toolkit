@@ -10,6 +10,22 @@
 
 ---
 
+<p align="center">
+  <b>🌐 在线试玩：<a href="https://feiyu-whale.github.io/feiyu-calendar-toolkit/">feiyu-whale.github.io/feiyu-calendar-toolkit</a></b><br>
+  <sub>（纯前端 · 零依赖 · 打开即用）</sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/home.png" width="46%" alt="首页">
+  &nbsp;
+  <img src="assets/screenshots/huangli.png" width="46%" alt="黄历">
+</p>
+<p align="center">
+  <img src="assets/screenshots/ziwei.png" width="30%" alt="紫微斗数">
+  <img src="assets/screenshots/qimen.png" width="30%" alt="奇门遁甲">
+  <img src="assets/screenshots/tarot.png" width="30%" alt="塔罗牌">
+</p>
+
 一个**纯前端、零依赖、即开即用**的开源集成工具。涵盖主流的东方历法（黄历/藏历）、西方历法（公历/东正教）、美洲古历（玛雅历）、伊斯兰历（回历），以及主流的中西方术数排盘（八字、紫微、奇门、大六壬、太乙、星盘、塔罗等）。
 
 我们只收录**目前仍在使用、且具有广泛文化影响力**的历法与术数体系，**绝不堆砌冗杂或死去的历法**。
