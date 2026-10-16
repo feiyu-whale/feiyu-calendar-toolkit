@@ -141,9 +141,17 @@
       if(p.earthBranch) h+='<div class="zhi">'+p.earthBranch+'</div>';
       var voidB = (p.voidness&&p.voidness.voidInPalace&&p.voidness.voidInPalace.length)?p.voidness.voidInPalace.join(''):'';
       if(voidB) h+='<div class="vh">空 '+voidB+'</div>';
+      // 2026-10-16 优化奇门吉凶展示：读库格局(status.gate旺衰/吉格/凶格)，替换手写定性
+      // ⚠️ 只改本页展示逻辑，不要去动底层 3meta 库！
+      var gStatus = (p.status&&p.status.gate)?p.status.gate:'';
+      if(gStatus) h+='<div class="vh">门'+gStatus+'</div>';
+      var aP = (p.auspiciousPatterns||[]).map(function(x){return x.name||x.description||x;}).filter(Boolean);
+      var iP = (p.inauspiciousPatterns||[]).map(function(x){return x.name||x.description||x;}).filter(Boolean);
+      if(aP.length) h+='<div class="vh" style="color:#7dd3a0">吉格 '+aP.join('、')+'</div>';
+      if(iP.length) h+='<div class="vh" style="color:#e09a9a">凶格 '+iP.join('、')+'</div>';
       h+='</div>';
     }
-    h+='</div><div class="palaces-legend">洛书九宫方位 · 天盘/地盘天干 · 门/星/神</div></div>';
+    h+='</div><div class="palaces-legend">洛书九宫方位 · 天盘/地盘天干 · 门/星/神 · 门旺衰/吉凶格局（取自 3meta 引擎）</div></div>';
 
     // 解读
     h+='<div class="sect">📖 解读</div><div class="interp">';
