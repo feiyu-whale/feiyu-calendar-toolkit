@@ -37,8 +37,7 @@
   .rune .glyph { font-size:40px; color:#a8f0c0; line-height:1.1; margin-bottom:6px; }
   .rune .nm { font-size:13px; color:#8fd0a0; font-weight:700; }
   .rune .pos { font-size:11px; color:#6b8a75; margin-top:4px; }
-  .rune .face.front.rev .glyph { transform:rotate(180deg); }
-  .sect { font-size:13px; color:#8fd0a0; margin:16px 0 8px; border-left:3px solid #7fc890; padding-left:8px; }
+  .rune .face.front.rev .glyph { transform:rotate(180deg); }  .sect { font-size:13px; color:#8fd0a0; margin:16px 0 8px; border-left:3px solid #7fc890; padding-left:8px; }
   .interp { font-size:13px; line-height:1.85; color:#c8d8c8; }
   .disclaim { font-size:11px; color:#909880; background:#141c14; border:1px solid #2a3a2a;
     border-radius:8px; padding:8px 10px; margin-bottom:10px; }
@@ -66,7 +65,7 @@
   <div id="result"></div>
 
   <div class="hint">欧甘树文属凯尔特古文化 · 属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
-  <div class="ver">v3-解读藏 20261016</div>
+  <div class="ver">v4-传统去逆位 20261016</div>
 </div>
 
 <script>
@@ -133,7 +132,8 @@
   function drawOgham(n){
     var pool=OGHAM.slice();
     for(var i=pool.length-1;i>0;i--){ var j=Math.floor(secureRand()*(i+1)); var t=pool[i];pool[i]=pool[j];pool[j]=t; }
-    return pool.slice(0,n).map(function(r){ return {sym:r, reversed:secureRand()<0.5}; });
+    // 2026-10-16 传统欧甘占卜仅有正位，无逆位（老爹指定）：不再生成 reversed
+    return pool.slice(0,n).map(function(r){ return {sym:r}; });
   }
 
   function calc(){
@@ -144,10 +144,10 @@
       var r=p.sym;
       h+='<div class="rune"><div class="inner">';
       h+='<div class="face back">ᚁ</div>';
-      h+='<div class="face front'+(p.reversed?' rev':'')+'">';
+      h+='<div class="face front">';
       h+='<div class="glyph">'+r[1]+'</div>';
       h+='<div class="nm">'+r[0]+'</div>';
-      h+='<div class="pos">'+(p.reversed?'逆位':'正位')+'</div>';
+      h+='<div class="pos">正位</div>';
       h+='</div></div></div>';
     });
     h+='</div><div style="text-align:center;color:#6b8a75;font-size:11px">点击树文翻开</div></div>';
@@ -159,8 +159,8 @@
     var labels = mode===1?['今日指引']:['局势现状','可行行动','可能结果'];
     picked.forEach(function(p,i){
       var r=p.sym;
-      h+='<p><b>'+labels[i]+'：'+r[0]+'（'+(p.reversed?'逆位':'正位')+'）</b></p>';
-      h+='<ul><li>'+(p.reversed? '逆位：'+r[3]+'受阻、需留意反向' : r[3])+'</li></ul>';
+      h+='<p><b>'+labels[i]+'：'+r[0]+'</b></p>';
+      h+='<ul><li>'+r[3]+'</li></ul>';
     });
     h+='<p class="note">欧甘树文是古凯尔特德鲁伊的自然符号体系，可作自省与思考的引子；解读因人而异，勿作命运断言。</p>';
     h+='</div></div>';
@@ -168,7 +168,8 @@
     h+='<div id="interpLock" class="interp" style="text-align:center;color:#6b8a75">🔒 翻开全部树文后，显示解读</div>';
 
     // 2026-10-16 趣味彩蛋：连10次一模一样 → 弹窗
-    var _sig=picked.map(function(p){return p.sym[0]+(p.reversed?'R':'U');}).join('|');
+    // 2026-10-16 传统欧甘占卜仅有正位，无逆位
+    var _sig=picked.map(function(p){return p.sym[0];}).join('|');
     var blow=streakCheck(_sig);
     if(blow) showEgg(blow);
 
