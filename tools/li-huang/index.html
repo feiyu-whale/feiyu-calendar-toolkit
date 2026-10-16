@@ -200,21 +200,22 @@
     var xs0=(lunar.getDayXiongSha&&lunar.getDayXiongSha())||[];
     document.getElementById('jishen').textContent = js0.length?js0.join('、'):'—';
     document.getElementById('xiongsha').textContent = xs0.length?xs0.join('、'):'—';
-    // 2026-10-16 补建除十二神/黄道黑道/胎神/五神方位（读库）
+    // 2026-10-16 补建除十二神/黄道黑道/胎神/五神方位（读库，带容错）
     // ⚠️ 只改本页展示逻辑，不要去动底层 lunar 库！
-    document.getElementById('zhixing').textContent = (lunar.getZhiXing&&lunar.getZhiXing())||'—';
-    var tsName=(lunar.getDayTianShen&&lunar.getDayTianShen())||'';
-    var tsType=(lunar.getDayTianShenType&&lunar.getDayTianShenType())||'';
-    var tsLuck=(lunar.getDayTianShenLuck&&lunar.getDayTianShenLuck())||'';
-    document.getElementById('tianshen').textContent = tsName?tsName+'（'+tsType+'·'+tsLuck+'）':'—';
-    document.getElementById('taishen').textContent = (lunar.getDayPositionTai&&lunar.getDayPositionTai())||'—';
-    document.getElementById('posXi').textContent = (lunar.getDayPositionXiDesc&&lunar.getDayPositionXiDesc())||'—';
-    document.getElementById('posFu').textContent = (lunar.getDayPositionFuDesc&&lunar.getDayPositionFuDesc())||'—';
-    document.getElementById('posCai').textContent = (lunar.getDayPositionCaiDesc&&lunar.getDayPositionCaiDesc())||'—';
-    document.getElementById('posYangGui').textContent = (lunar.getDayPositionYangGuiDesc&&lunar.getDayPositionYangGuiDesc())||'—';
-    document.getElementById('posYinGui').textContent = (lunar.getDayPositionYinGuiDesc&&lunar.getDayPositionYinGuiDesc())||'—';
-    // 2026-10-16 补时辰吉凶（12时辰 chip，点击看宜忌+干支）
-    renderHours();
+    function safe(fn, dflt){ try{ var v=fn(); return (v==null||v==='')?(dflt||'—'):v; }catch(e){ return dflt||'—'; } }
+    document.getElementById('zhixing').textContent = safe(function(){return lunar.getZhiXing();});
+    document.getElementById('tianshen').textContent = safe(function(){
+      var n=lunar.getDayTianShen()||'', t=lunar.getDayTianShenType()||'', k=lunar.getDayTianShenLuck()||'';
+      return n?(n+'（'+t+'·'+k+'）'):'—';
+    });
+    document.getElementById('taishen').textContent = safe(function(){return lunar.getDayPositionTai();});
+    document.getElementById('posXi').textContent = safe(function(){return lunar.getDayPositionXiDesc();});
+    document.getElementById('posFu').textContent = safe(function(){return lunar.getDayPositionFuDesc();});
+    document.getElementById('posCai').textContent = safe(function(){return lunar.getDayPositionCaiDesc();});
+    document.getElementById('posYangGui').textContent = safe(function(){return lunar.getDayPositionYangGuiDesc();});
+    document.getElementById('posYinGui').textContent = safe(function(){return lunar.getDayPositionYinGuiDesc();});
+    // 2026-10-16 补时辰吉凶（12时辰 chip，点击看宜忌+干支；容错：失败不影响整页）
+    try{ renderHours(); }catch(e){ /* 时辰模块失败不影响其余 */ }
 
     // 宜忌
     var yiEl=document.getElementById('yiList'); yiEl.innerHTML='';
@@ -264,7 +265,9 @@
   function renderHours(){
     var box=document.getElementById('hourChips');
     var det=document.getElementById('hourDetail');
-    if(!box||!lunar) return;
+    // 2026-10-16 修复：这里不依赖 render() 内的局部变量 lunar（原写法引未声明变量会抛错、拖垮整页）
+    // ⚠️ 只改本页展示逻辑，不要去动底层 lunar 库！
+    if(!box||typeof Solar==='undefined') return;
     var zhiNames=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
     var ranges=['23-1','1-3','3-5','5-7','7-9','9-11','11-13','13-15','15-17','17-19','19-21','21-23'];
     box.innerHTML='';
