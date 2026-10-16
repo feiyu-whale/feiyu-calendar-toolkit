@@ -49,6 +49,8 @@
   <div class="ver">v1-全角半角 20261016</div>
 </div>
 <script>
+// 【fullhalf】全角/半角 字母数字符号互转。依赖：无（Unicode 映射）。输入：文本；输出：全/半角文本。
+// 本文件为单页工具，IIFE 隔离，无全局污染。
 // 依据：Unicode 全角/半角对应关系（U+FF01–U+FF5E ↔ U+0021–U+007E，差 0xFEE0；全角空格 U+3000 ↔ 半角空格）。
 (function(){
   'use strict';

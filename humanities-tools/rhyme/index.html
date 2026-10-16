@@ -60,6 +60,8 @@
   <div class="ver">v1-韵部查询 20261016</div>
 </div>
 <script>
+// 【rhyme】韵部查询（字→所属韵部+平仄）。依赖：平水韵/词林正韵/中华新韵韵表(zhconv库作者同源, MIT)。输入：汉字；输出：韵部+平仄。
+// 本文件为单页工具，IIFE 隔离，无全局污染。
 // 数据来源：charlesix59/chinese_word_rhyme (MIT, (c) 2023 Charles 闵)
 // 平水韵/词林正韵/中华新韵 韵表 + 单字平仄表。按需 fetch，不一次性加载。
 (function(){

@@ -49,6 +49,8 @@
   <div class="ver">v1-文本对比 20261016</div>
 </div>
 <script>
+// 【diff】两段文本逐字对比（LCS diff）。依赖：无（自实现 LCS）。输入：原文A+改后B；输出：红删绿增高亮。
+// 本文件为单页工具，IIFE 隔离，无全局污染。
 // 依据：LCS（最长公共子序列）逐字 diff 算法；经典文本对比实现，无外部数据。
 (function(){
   'use strict';
