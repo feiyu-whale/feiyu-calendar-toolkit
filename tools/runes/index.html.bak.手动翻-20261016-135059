@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ᚠ 卢恩符文</title>
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { min-height:100%; background:#0a0d10; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif; color:#d8e8f0;
+    padding:16px 12px 40px; user-select:none; display:flex; justify-content:center; }
+  #wrap { width:100%; max-width:560px; }
+  h1 { font-size:22px; text-align:center; color:#8fd0e0; margin-bottom:4px; letter-spacing:3px; }
+  .sub { text-align:center; color:#6b8a99; font-size:12px; margin-bottom:16px; line-height:1.6; }
+  .card { background:linear-gradient(160deg,#14202a,#0d151c); border:1px solid #2a4a5a;
+    border-radius:12px; padding:14px; margin-bottom:11px; }
+  .card h3 { font-size:13px; color:#7fb8d0; margin-bottom:10px; border-left:3px solid #7fb8d0; padding-left:8px; }
+  button.go { width:100%; padding:14px; font-size:17px; font-weight:700; color:#0a1418;
+    background:linear-gradient(160deg,#8fd0e0,#4a90a8); border:none; border-radius:11px;
+    cursor:pointer; font-family:inherit; letter-spacing:2px; }
+  button.go:active { transform:scale(.98); }
+  .modes { display:flex; gap:8px; margin-bottom:10px; }
+  .modes button { flex:1; padding:9px; font-size:13px; background:#0d151c; color:#7fb8d0;
+    border:1px solid #2a4a5a; border-radius:9px; cursor:pointer; font-family:inherit; }
+  .modes button.active { background:#1a3040; color:#a8e0f0; border-color:#4a90a8; }
+  .runes { display:flex; justify-content:center; gap:14px; margin:16px 0; flex-wrap:wrap; }
+  .rune { width:92px; height:132px; border-radius:10px; cursor:pointer; perspective:600px; }
+  .rune .inner { width:100%; height:100%; position:relative; transition:transform .5s; transform-style:preserve-3d; }
+  .rune.flipped .inner { transform:rotateY(180deg); }
+  .rune .face { position:absolute; inset:0; border-radius:10px; backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .rune .back { background:linear-gradient(160deg,#1a2e3a,#0d1a22); border:2px solid #3a6a80; color:#8fd0e0; font-size:32px; }
+  .rune .front { background:linear-gradient(160deg,#16242e,#0d151c); border:2px solid #4a90a8; transform:rotateY(180deg); padding:8px; }
+  .rune .front .glyph { font-size:34px; color:#a8e0f0; }
+  .rune .front .nm { font-size:12px; color:#8fd0e0; margin-top:4px; font-weight:700; }
+  .rune .front .pos { font-size:10px; color:#6b8a99; }
+  .rune .front.rev .glyph { transform:rotate(180deg); color:#e0a0a0; }
+  .sect { color:#7fb8d0; font-size:14px; font-weight:700; margin:14px 0 8px; }
+  .interp { background:#14202a; border:1px solid #2a4a5a; border-radius:10px; padding:12px 14px;
+    font-size:13px; line-height:1.8; color:#b8d0e0; }
+  .interp b { color:#8fd0e0; }
+  .interp ul { margin:0 0 8px; padding-left:18px; }
+  .interp li { margin-bottom:5px; color:#a8c0d0; }
+  .interp .disclaim { color:#ffb3c1; background:#2a0f1a; border:1px solid #5a2a3a; border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:8px; }
+  .interp .note { color:#6b8a99; font-size:11px; margin-top:6px; }
+  .hint { text-align:center; color:#4a6a78; font-size:11px; margin-top:10px; line-height:1.7; }
+  .ver { text-align:center; color:#2e4a56; font-size:10px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>ᚠ 卢 恩 符 文</h1>
+  <div class="sub">北欧古文字 · 静心抽符文<br>纯本地随机 · 无网络</div>
+
+  <div class="card">
+    <h3>选择牌阵</h3>
+    <div class="modes">
+      <button data-n="1" class="active">单符（指引）</button>
+      <button data-n="3">三符（局势/行动/结果）</button>
+    </div>
+    <button class="go" id="draw">投 掷 符 文</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="hint">卢恩符文属北欧古文化 · 属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
+  <div class="ver">v1-卢恩符文 20261015</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // 24 个古弗萨克（Elder Futhark）符文 + 空白符
+  // [名称, 字符, 正位义, 逆位义]
+  var RUNES = [
+    ['费胡 Fehu','ᚠ','财富、丰盛、新的资源、牛群','失去、贪心、财务损失'],
+    ['乌鲁兹 Uruz','ᚢ','力量、健康、原始能量、毅力','虚弱、机会流失、健康问题'],
+    ['图里萨兹 Thurisaz','ᚦ','守护、挑战、强韧、门神','危险、冲动、被迫防御'],
+    ['安苏兹 Ansuz','ᚨ','沟通、智慧、神启、口才','误解、欺骗、沟通不畅'],
+    ['莱杜 Raidho','ᚱ','旅行、前进、节奏、旅程','停滞、偏离方向、延误'],
+    ['卡诺 Kenaz','ᚲ','火焰、启示、创造、知识之光','熄灭、蒙昧、创作受阻'],
+    ['盖博 Gebo','ᚷ','礼物、交换、结合、慷慨','失衡的给予、依赖、亏欠'],
+    ['文约 Wunjo','ᚹ','喜悦、和谐、成功、归属','悲伤、失和、孤立'],
+    ['哈格拉兹 Hagalaz','ᚺ','冰雹、剧变、断舍、考验','渐进的困难、慢性消耗'],
+    ['纳奥帝兹 Nauthiz','ᚾ','需求、匮乏、忍耐、约束','挣脱困境、无谓的匮乏'],
+    ['伊萨 Isa','ᛁ','冰、静止、等待、内省','解冻、行动、时机成熟'],
+    ['耶拉 Jera','ᛃ','收获、周期、应得的回报','时机未到、白费功夫'],
+    ['艾瓦兹 Eihwaz','ᛇ','紫杉、转化、坚韧、生死之桥','迷失方向、动摇、恐惧'],
+    ['佩索 Perthro','ᛈ','秘密、机遇、命运之杯、未知','秘密揭开、失去机会'],
+    ['阿尔吉兹 Algiz','ᛉ','守护、庇护、觉醒、联系','失去保护、疏离、退缩'],
+    ['索维罗 Sowilo','ᛊ','太阳、胜利、能量、成功','虚假的成功、能量枯竭'],
+    ['提瓦兹 Tiwaz','ᛏ','正义、勇气、牺牲、胜利','不公、怯懦、失败'],
+    ['贝卡纳 Berkana','ᛒ','桦树、生育、生长、新生','停滞、成长受阻、忽视'],
+    ['爱华兹 Ehwaz','ᛖ','马、前进、信任、伙伴','背叛、停滞、不信任'],
+    ['曼纳兹 Mannaz','ᛗ','自我、人性、合作、社会','孤独、敌人、自我怀疑'],
+    ['拉古兹 Laguz','ᛚ','水、流动、直觉、潜意识','停滞、胆怯、迷失'],
+    ['英古兹 Ingwaz','ᛜ','种子、内在成长、积蓄、潜能','压抑、停滞、内在冲突'],
+    ['达加兹 Dagaz','ᛞ','黎明、突破、转变、希望','黄昏、错失转变、黑夜'],
+    ['欧萨拉 Othala','ᛟ','家业、传承、根基、祖产','失根、束缚、家族纠葛'],
+    ['空白符 Wyrd','▢','命运未定、未知、一切皆有可能','（空白符无逆位）']
+  ];
+
+  var mode=1;
+  document.querySelectorAll('.modes button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.modes button').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active'); mode=parseInt(b.dataset.n,10);
+    });
+  });
+
+  // 2026-10-16 改用真随机源 crypto.getRandomValues（操作系统熵池），老浏览器回退 Math.random
+  // ⚠️ 只改本页随机源，不动其他逻辑！
+  function secureRand(){
+    if(window.crypto && window.crypto.getRandomValues){
+      var a=new Uint32Array(1); window.crypto.getRandomValues(a);
+      return a[0]/4294967296;
+    }
+    return Math.random();
+  }
+  // 2026-10-16 趣味彩蛋：会话内连10次一模一样 → 弹窗（纯内存，不存储）
+  // ⚠️ 只改本页展示逻辑，不动其他逻辑！
+  var _eggStreak={sig:'',n:0};
+  function streakCheck(sig){
+    if(_eggStreak.sig===sig){ _eggStreak.n++; } else { _eggStreak.sig=sig; _eggStreak.n=1; }
+    return _eggStreak.n===10 ? '你的运气过于奇特' : '';
+  }
+  function showEgg(msg){
+    setTimeout(function(){
+      var mask=document.createElement('div');
+      mask.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer';
+      mask.innerHTML='<div style="background:#1e2830;border:1px solid #4a6a7a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:22px;font-weight:700;color:#a0d0f0;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#90a8b0;margin-bottom:16px">连抽 10 次一模一样的签，天意难测啊 🌀</div><div style="font-size:12px;color:#708090">（点任意处关闭）</div></div>';
+      mask.onclick=function(){ mask.remove(); };
+      document.body.appendChild(mask);
+    }, 400);
+  }
+  function drawRunes(n){
+    var pool=RUNES.slice();
+    for(var i=pool.length-1;i>0;i--){ var j=Math.floor(secureRand()*(i+1)); var t=pool[i];pool[i]=pool[j];pool[j]=t; }
+    return pool.slice(0,n).map(function(r){ return {rune:r, reversed: r[1]==='▢'?false:secureRand()<0.5}; });
+  }
+
+  function calc(){
+    var picked=drawRunes(mode);
+    var res=document.getElementById('result');
+    var h='<div class="card"><h3>你的符文</h3><div class="runes">';
+    picked.forEach(function(p){
+      var r=p.rune;
+      h+='<div class="rune"><div class="inner">';
+      h+='<div class="face back">ᛝ</div>';
+      h+='<div class="face front'+(p.reversed?' rev':'')+'">';
+      h+='<div class="glyph">'+r[1]+'</div>';
+      h+='<div class="nm">'+r[0]+'</div>';
+      h+='<div class="pos">'+(r[1]==='▢'?'空白符':(p.reversed?'逆位':'正位'))+'</div>';
+      h+='</div></div></div>';
+    });
+    h+='</div><div style="text-align:center;color:#6b8a99;font-size:11px">点击符文翻开</div></div>';
+
+    h+='<div class="sect">📖 解读</div><div class="interp">';
+    h+='<div class="disclaim">⚠️ 卢恩符文属北欧古文化，以下为传统符文义，非科学预测，仅供娱乐参考。</div>';
+    var labels = mode===1?['今日指引']:['局势现状','可行行动','可能结果'];
+    picked.forEach(function(p,i){
+      var r=p.rune;
+      h+='<p><b>'+labels[i]+'：'+r[0]+'（'+(r[1]==='▢'?'空白':(p.reversed?'逆位':'正位'))+'）</b></p>';
+      h+='<ul><li>'+(p.reversed? r[3] : r[2])+'</li></ul>';
+    });
+    h+='<p class="note">卢恩符文是古老的象征符号体系，可作自省与思考的引子；解读因人而异，勿作命运断言。</p>';
+    h+='</div>';
+
+    // 2026-10-16 趣味彩蛋：连10次一模一样 → 弹窗
+    var _sig=picked.map(function(p){return p.rune[0]+(p.reversed?'R':'U');}).join('|');
+    var blow=streakCheck(_sig);
+    if(blow) showEgg(blow);
+
+    res.innerHTML=h;
+    res.querySelectorAll('.rune').forEach(function(el){
+      el.addEventListener('click',function(){ el.classList.toggle('flipped'); });
+    });
+    setTimeout(function(){ res.querySelectorAll('.rune').forEach(function(el){ el.classList.add('flipped'); }); }, 500);
+  }
+
+  document.getElementById('draw').addEventListener('click',calc);
+  calc();
+})();
+</script>
+</body>
+</html>
