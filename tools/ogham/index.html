@@ -66,7 +66,7 @@
   <div id="result"></div>
 
   <div class="hint">欧甘树文属凯尔特古文化 · 属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
-  <div class="ver">v1-欧甘树文 20261015</div>
+  <div class="ver">v2-手动翻 20261016</div>
 </div>
 
 <script>
@@ -172,7 +172,7 @@
     res.querySelectorAll('.rune').forEach(function(el){
       el.addEventListener('click',function(){ el.classList.toggle('flipped'); });
     });
-    setTimeout(function(){ res.querySelectorAll('.rune').forEach(function(el){ el.classList.add('flipped'); }); }, 500);
+    // 2026-10-16 改为纯手动翻：移除原「延迟 500ms 自动翻开」，投掷后需手动点才翻（老爹指定）
   }
 
   document.getElementById('draw').addEventListener('click',calc);
