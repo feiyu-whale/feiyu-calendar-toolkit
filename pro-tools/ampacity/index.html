@@ -3,62 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>⚡ 电缆载流量</title>
+<title>⚡ 电缆载流量（数据核校中）</title>
 <style>
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
   html,body { min-height:100%; background:radial-gradient(120% 80% at 50% 0%, #14283a 0%, #0a1622 60%, #060a10 100%); }
-  body { display:flex; justify-content:center; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#dbeafe; padding:18px 14px 40px;
+    display:flex; justify-content:center; user-select:none; }
+  #wrap { width:100%; max-width:560px; }
+  .back { display:inline-block; text-decoration:none; color:#6b8fb3; font-size:13px; margin-bottom:12px;
+    padding:6px 12px; border:1px solid #22384c; border-radius:20px; }
+  h1 { font-size:20px; color:#9fe0ff; text-align:center; margin-bottom:14px; }
+  .card { background:#0e1a26; border:1px solid #5a4a1e; border-radius:12px; padding:22px 18px; text-align:center; }
+  .warn { font-size:34px; margin-bottom:10px; }
+  .t { font-size:16px; color:#e0c060; font-weight:700; margin-bottom:10px; }
+  .d { font-size:13.5px; color:#a9bfd4; line-height:1.8; }
+  .ver { text-align:center; color:#22383c; font-size:10px; margin-top:22px; }
 </style>
 </head>
 <body>
-<div id="app"></div>
-<script src="../../standard/StandardTool.js"></script>
-<script>
-(function(){
-  'use strict';
-
-  // —— 载流量基准表（铜芯，明敷 30℃，单位 A）——
-  var BASE = { 1.5:24, 2.5:32, 4:42, 6:55, 10:75, 16:100, 25:133, 35:164, 50:198, 70:255, 95:310, 120:355 };
-
-  // —— 校正系数 ——
-  var KTEMP = { 30:1.00, 35:0.94, 40:0.87, 45:0.79, 50:0.71 };
-  var KRULE = { 1:1.00, 2:0.80, 3:0.70, 4:0.60 };
-  var KLAY  = { open:1.00, tray:0.95, conduit:0.85, buried:0.90 };
-
-  StandardTool.mount("#app", {
-    title: "⚡ 电缆载流量计算器",
-    desc: "基准载流量 × 温度校正 × 穿管校正 × 敷设方式",
-    back: "../",
-    backText: "← 回专业工具箱",
-    inputs: [
-      { key:"area", label:"截面积", unit:"mm²", type:"select",
-        options:[1.5,2.5,4,6,10,16,25,35,50,70,95,120].map(function(a){return {v:a,label:a+" mm²"};}),
-        default:2.5 },
-      { key:"temp", label:"环境温度", unit:"℃", type:"select",
-        options:[30,35,40,45,50].map(function(t){return {v:t,label:t+"℃"};}), default:30 },
-      { key:"pipes", label:"穿管根数", unit:"根", type:"select",
-        options:[{v:1,label:"1 根"},{v:2,label:"2 根"},{v:3,label:"3 根"},{v:4,label:"4 根"}], default:1 },
-      { key:"lay", label:"敷设方式", unit:"", type:"select",
-        options:[{v:"open",label:"明敷/空气中"},{v:"tray",label:"桥架"},{v:"conduit",label:"穿管"},{v:"buried",label:"埋地"}], default:"open" },
-    ],
-    compute: function(v){
-      var base = BASE[v.area];
-      if(base == null) return { error: "暂无该截面积数据" };
-      var kt = KTEMP[v.temp], kp = KRULE[v.pipes], kl = KLAY[v.lay];
-      var final = base * kt * kp * kl;
-      return {
-        value: final, unit: "A",
-        note: "基准 " + base + " A × 温度 " + kt + " × 穿管 " + kp + " × 敷设 " + kl
-      };
-    },
-    anchors: [
-      "基准值：铜芯、明敷、30℃、单根。",
-      "温度越高、穿管根数越多、散热越差 → 载流量打折。",
-      "本表为常用估算；工程设防请以 GB/T 16895、厂家样本为准。",
-    ],
-    version: "v1-模板示例 20261016",
-  });
-})();
-</script>
+<div id="wrap">
+  <a class="back" href="../">← 回专业工具箱</a>
+  <h1>⚡ 电缆载流量计算器</h1>
+  <div class="card">
+    <div class="warn">🚧</div>
+    <div class="t">数据核校中，暂不可用</div>
+    <div class="d">
+      此工具的基准载流量与校正系数正在对照<b>国标（GB/T 16895 等）</b>重新核对。<br>
+      原数据不够准确，<b>为避免误用（载流量算高会导致线路过载），已先行下线</b>。<br>
+      核校完成后重新上线，敬请稍候。🐳
+    </div>
+  </div>
+  <div class="ver">v0-下线核校 20261016</div>
+</div>
 </body>
 </html>
