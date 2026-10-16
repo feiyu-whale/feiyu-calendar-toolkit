@@ -67,6 +67,7 @@
 <script>
 (function(){
   'use strict';
+  // 依据：初等数论（试除法质数判定、整数分解、欧几里得 GCD）。
   var LIMIT=100000000000; // 上限 1e11，防卡死
 
   function big(s){ s=(s||'').trim().replace(/[,\s]/g,''); if(s.length>15) s=s.slice(0,15); return s; }

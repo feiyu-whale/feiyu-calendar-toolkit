@@ -64,6 +64,7 @@
 <script>
 (function(){
 'use strict';
+  // 依据：IPv4 CIDR 位运算（RFC 4632）；子网/广播/主机范围标准算法。
   const $ = id => document.getElementById(id);
 
   function ipToInt(s){

@@ -52,11 +52,37 @@
     <div class="lbl" style="margin-top:12px">明暗阶梯</div>
     <div class="grad" id="shades"></div>
   </div>
-  <div class="ver">v1-颜色工具 20261016</div>
+  <div class="ver">v2-修复制兼容+自动对比色 20261016</div>
 </div>
 <script>
+// 依据：sRGB (IEC 61966-2-1) 色彩空间；HEX/RGB/HSL 标准换算公式。
 const $ = id => document.getElementById(id);
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+
+// 复制（稳妥版：先试 clipboard API → 兑底 execCommand → 全失败如实报错）
+function doCopy(text){
+  return new Promise(function(resolve, reject){
+    function fallback(){
+      try{
+        var ta=document.createElement('textarea');
+        ta.value=text;
+        ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+        ta.setAttribute('readonly','');
+        document.body.appendChild(ta);
+        ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+        var ok=false;
+        try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+        document.body.removeChild(ta);
+        ok?resolve():reject(new Error('复制不受支持'));
+      }catch(e){ reject(e); }
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(resolve).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+}
 
 function hexToRgb(h){
   h = h.replace("#","").trim();
@@ -122,8 +148,11 @@ $("hsl").addEventListener("input", parseHsl);
 $("wrap").addEventListener("click", e => {
   if(e.target.classList.contains("cp")){
     const t = e.target.dataset.t;
-    navigator.clipboard?.writeText($(t).value);
-    e.target.textContent="已复制"; setTimeout(()=>e.target.textContent="复制",1200);
+    doCopy($(t).value).then(function(){
+      e.target.textContent="已复制"; setTimeout(()=>e.target.textContent="复制",1200);
+    }).catch(function(){
+      e.target.textContent="复制失败"; setTimeout(()=>e.target.textContent="复制",1500);
+    });
   }
 });
 render();

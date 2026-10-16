@@ -68,27 +68,35 @@
 (function(){
 'use strict';
   const $ = id => document.getElementById(id);
-  // 色环标准：数字/倍率/误差
+  // ===== 色环标准 =====
+  // 数据来源：IEC 60062；数值经 SparkFun「Resistors」官方教程核对
+  //   https://learn.sparkfun.com/tutorials/resistors/（2026-10-16 核）
+  // 字段：v=有效数字；mul=倍率；tol=误差（能做误差环的色）；tolOk=可作误差环
   const COLORS = [
-    {n:"黑",c:"#111", v:0, mul:1,     tol:null},
-    {n:"棕",c:"#6b3a1a", v:1, mul:10,  tol:"±1%"},
-    {n:"红",c:"#c0392b", v:2, mul:100, tol:"±2%"},
-    {n:"橙",c:"#e67e22", v:3, mul:1e3, tol:null},
-    {n:"黄",c:"#f1c40f", v:4, mul:1e4, tol:null},
-    {n:"绿",c:"#27ae60", v:5, mul:1e5, tol:"±0.5%"},
-    {n:"蓝",c:"#2980b9", v:6, mul:1e6, tol:"±0.25%"},
-    {n:"紫",c:"#8e44ad", v:7, mul:1e7, tol:"±0.1%"},
-    {n:"灰",c:"#7f8c8d", v:8, mul:1e8, tol:"±0.05%"},
-    {n:"白",c:"#ecf0f1", v:9, mul:1e9, tol:null},
-    {n:"金",c:"#c9a227", v:null, mul:1e-1, tol:"±5%"},
-    {n:"银",c:"#bdc3c7", v:null, mul:1e-2, tol:"±10%"},
+    {n:"黑",c:"#111", v:0, mul:1,     tol:null,   tolOk:false},
+    {n:"棕",c:"#6b3a1a", v:1, mul:10,  tol:"±1%",  tolOk:true},
+    {n:"红",c:"#c0392b", v:2, mul:100, tol:"±2%",  tolOk:true},
+    {n:"橙",c:"#e67e22", v:3, mul:1e3, tol:"±3%",  tolOk:true},
+    {n:"黄",c:"#f1c40f", v:4, mul:1e4, tol:"±4%",  tolOk:true},
+    {n:"绿",c:"#27ae60", v:5, mul:1e5, tol:"±0.5%",tolOk:true},
+    {n:"蓝",c:"#2980b9", v:6, mul:1e6, tol:"±0.25%",tolOk:true},
+    {n:"紫",c:"#8e44ad", v:7, mul:1e7, tol:"±0.1%",tolOk:true},
+    {n:"灰",c:"#7f8c8d", v:8, mul:1e8, tol:"±0.05%",tolOk:true},
+    {n:"白",c:"#ecf0f1", v:9, mul:1e9, tol:null,   tolOk:false},
+    {n:"金",c:"#c9a227", v:null, mul:1e-1, tol:"±5%",  tolOk:true},
+    {n:"银",c:"#bdc3c7", v:null, mul:1e-2, tol:"±10%", tolOk:true},
   ];
   let mode = 4;
   // 每环可用的颜色索引
   function optsFor(band, mode){
     // band: 0..(mode-1); 最后一环=误差
     const last = band === mode-1;
-    if(last) return [1,2,5,6,7,8,10,11]; // 棕红绿蓝紫灰金银
+    if(last){
+      // 误差环：所有 tolOk=true 的色（棕红橙黄绿蓝紫灰 金 银）
+      const arr = [];
+      COLORS.forEach((c,i)=>{ if(c.tolOk) arr.push(i); });
+      return arr;
+    }
     return [0,1,2,3,4,5,6,7,8,9]; // 0-9
   }
   let sel = [];

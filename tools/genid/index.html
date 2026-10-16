@@ -71,8 +71,34 @@
   <div class="ver">v1-随机生成 20261016</div>
 </div>
 <script>
+// 依据：UUID v4 (RFC 4122)；随机数用 crypto.getRandomValues + 拒绝采样（无模偏差）。
 const $ = id => document.getElementById(id);
 let mode = "uuid";
+
+// 复制（稳妥版：先试 clipboard API → 兑底 execCommand → 全失败如实报错）
+function doCopy(text){
+  return new Promise(function(resolve, reject){
+    function fallback(){
+      try{
+        var ta=document.createElement('textarea');
+        ta.value=text;
+        ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+        ta.setAttribute('readonly','');
+        document.body.appendChild(ta);
+        ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+        var ok=false;
+        try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+        document.body.removeChild(ta);
+        ok?resolve():reject(new Error('复制不受支持'));
+      }catch(e){ reject(e); }
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(resolve).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+}
 
 function rnd(n){ // 无模偏差的安全随机整数 [0,n)
   const max = Math.floor(256/n)*n;
@@ -138,8 +164,9 @@ $("tabs").addEventListener("click", e => {
   refresh();
 });
 $("gen").onclick = refresh;
-$("cp").onclick = () => { navigator.clipboard?.writeText($("out").textContent);
-  $("cp").textContent = "已复制"; setTimeout(()=>$("cp").textContent="复制",1200); };
+$("cp").onclick = () => { doCopy($("out").textContent).then(()=>{
+  $("cp").textContent = "已复制"; setTimeout(()=>$("cp").textContent="复制",1200);
+}).catch(()=>{ $("cp").textContent = "复制失败"; setTimeout(()=>$("cp").textContent="复制",1500); }); };
 ["len","cUp","cLow","cNum","cSym","cNoAmb"].forEach(id => $(id).addEventListener("input", () => {
   $("lenV").textContent = $("len").value;
   if(mode === "pwd") refresh();

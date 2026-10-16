@@ -55,6 +55,7 @@
 <script>
 (function(){
 'use strict';
+  // 依据：欧姆定律 V=IR、电功率 P=VI（基础电学，无争议）。
   const $ = id => document.getElementById(id);
   const ids = ["u","i","r","p"];
   function num(id){ const v = $(id).value.trim(); if(v==="") return null; const n = Number(v); return isNaN(n) ? null : n; }

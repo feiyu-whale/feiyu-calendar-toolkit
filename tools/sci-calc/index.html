@@ -10,6 +10,10 @@
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#dbeafe;
     display:flex; align-items:center; justify-content:center; user-select:none; }
   #wrap { width:100%; max-width:420px; height:100%; max-height:100vh; display:flex; flex-direction:column; }
+  .bar { display:flex; align-items:center; gap:8px; padding:8px 12px 4px; }
+  .bar .back { text-decoration:none; color:#6b8fb3; font-size:12.5px; padding:4px 10px; border:1px solid #22384c; border-radius:16px; }
+  .bar .ttl { color:#9fe0ff; font-size:14px; font-weight:700; }
+  .bar .spacer { flex:1; }
   .screen { background:#060a10; padding:16px 18px 12px; border-bottom:1px solid #1c2a38; }
   .expr { font-size:14px; color:#5b7a99; min-height:20px; word-break:break-all; text-align:right; }
   .out { font-size:38px; font-weight:700; color:#9fe0ff; text-align:right; word-break:break-all; min-height:48px; margin-top:4px; }
@@ -31,16 +35,18 @@
 </head>
 <body>
 <div id="wrap">
+  <div class="bar"><a class="back" href="../">← 回工具区</a><span class="ttl">🧮 科学计算器</span><span class="spacer"></span></div>
   <div class="screen">
     <div class="expr" id="expr"></div>
     <div class="out" id="out">0</div>
   </div>
   <div class="pad" id="pad"></div>
-  <div class="ver">v2-超长精度修复 20261015</div>
+  <div class="ver">v3-补回标题与返回键 20261016</div>
 </div>
 <script>
 (function(){
   'use strict';
+  // 依据：基础数学函数定义（三角函数/对数/幂/开方）；角度-弧度换算 π/180。
   var exprEl=document.getElementById('expr'), outEl=document.getElementById('out');
   var expr='';       // 表达式（用可读符号）
   var DEG=true;      // 角度/弧度
