@@ -109,7 +109,8 @@
   // 用 Intl 校验一个日期是否是某回历日期（用于反查）
   function hijriToGreg(hy, hm, hd){
     // 以回历纪元(1-1-1 ≈ 公历622年)为起点，按年均354.367天估算，再逐日微调
-    var approxJulian = 1948084 + Math.floor((hy-1)*354.367 + (hm-1)*29.53 + (hd-1));
+    // 2026-10-16 修复回历基准常数：应为 1948439（回历纪元 1-1-1 的 JDN），原 1948084 少了 355 天≈一整个回历年，导致 H2G 每次换算系统性偏早约一年（Colony #137 审查发现）
+    var approxJulian = 1948439 + Math.floor((hy-1)*354.367 + (hm-1)*29.53 + (hd-1));
     // 转成公历 Date 粗略定位
     var approx = jdnToDate(approxJulian);
     var g = new Date(approx.getTime());
@@ -187,7 +188,9 @@
     var r = hijriToGreg(y, m, d);
     if(!r){ $('result').innerHTML = '<div class="err">该回历日期无对应公历（可能超出范围）</div>'; return; }
     var hij = {year:y, month:m, day:d};
-    $('result').innerHTML = render(r.date, hij);
+    // 2026-10-16 修复：fallback 未精确匹配时加提示，不再把近似值当精确值渲染（Colony #137）
+    var tip = r.exact ? '' : '<div style="font-size:11px;color:#b0a05a;margin-top:6px;text-align:center">※ 该日期未在乌姆库拉历中找到精确对应，以上为最接近结果，仅供参考。</div>';
+    $('result').innerHTML = render(r.date, hij) + tip;
   }
 
   // 初始化
