@@ -98,6 +98,8 @@
     <div class="row"><span class="k">彭祖百忌</span><span class="v" id="pengzu">—</span></div>
     <div class="row"><span class="k">冲煞</span><span class="v" id="chong">—</span></div>
     <div class="row"><span class="k">纳音</span><span class="v" id="nayin">—</span></div>
+    <div class="row"><span class="k">吉神</span><span class="v" id="jishen">—</span></div>
+    <div class="row"><span class="k">凶煞</span><span class="v" id="xiongsha">—</span></div>
   </div>
 
   <div class="card">
@@ -170,6 +172,10 @@
     document.getElementById('pengzu').textContent = lunar.getPengZuGan()+' · '+lunar.getPengZuZhi();
     document.getElementById('chong').textContent = '冲'+lunar.getDayChongDesc()+' 煞'+lunar.getDaySha();
     document.getElementById('nayin').textContent = lunar.getDayNaYin();
+    var js0=(lunar.getDayJiShen&&lunar.getDayJiShen())||[];
+    var xs0=(lunar.getDayXiongSha&&lunar.getDayXiongSha())||[];
+    document.getElementById('jishen').textContent = js0.length?js0.join('、'):'—';
+    document.getElementById('xiongsha').textContent = xs0.length?xs0.join('、'):'—';
 
     // 宜忌
     var yiEl=document.getElementById('yiList'); yiEl.innerHTML='';
@@ -207,6 +213,8 @@
     im += '<li><b>纳音</b>：把干支合化为五行名称（如“海中金”）。今日日柱纳音：<b>'+lunar.getDayNaYin()+'</b>。</li>';
     // 月相
     im += '<li><b>月相</b>：今晚月亮形状：<b>'+lunar.getYueXiang()+'</b>。</li>';
+    // 吉神 / 凶煞
+    im += '<li><b>吉神/凶煞</b>：当日当值神煞——吉神 <b>'+(js0.length?js0.join('、'):'无')+'</b>'+(xs0.length?'；凶煞 <b>'+xs0.join('、')+'</b>':'')+'。传统上吉神宜行事、凶煞宜趋避。（数据源自 lunar-javascript）</li>';
     im += '</ul>';
     im += '<p class="note">黄历源自中国古代历法与民俗，宜忌/吉凶/彭祖百忌均为传统说法，非科学结论，当习俗文化看就好。</p>';
     document.getElementById('interpBox').innerHTML = im;
