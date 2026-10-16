@@ -140,11 +140,20 @@
     });
   });
 
+  // 2026-10-16 改用真随机源 crypto.getRandomValues（操作系统熵池），老浏览器回退 Math.random
+  // ⚠️ 只改本页随机源，不动其他逻辑！
+  function secureRand(){
+    if(window.crypto && window.crypto.getRandomValues){
+      var a=new Uint32Array(1); window.crypto.getRandomValues(a);
+      return a[0]/4294967296; // [0,1)
+    }
+    return Math.random();
+  }
   function drawCards(n){
     var deck=buildDeck();
     // Fisher-Yates
-    for(var i=deck.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=deck[i];deck[i]=deck[j];deck[j]=t; }
-    return deck.slice(0,n).map(function(c){ return {card:c, reversed:Math.random()<0.5}; });
+    for(var i=deck.length-1;i>0;i--){ var j=Math.floor(secureRand()*(i+1)); var t=deck[i];deck[i]=deck[j];deck[j]=t; }
+    return deck.slice(0,n).map(function(c){ return {card:c, reversed:secureRand()<0.5}; });
   }
 
   function calc(){

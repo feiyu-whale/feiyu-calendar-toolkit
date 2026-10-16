@@ -178,8 +178,17 @@
     });
   });
 
+  // 2026-10-16 改用真随机源 crypto.getRandomValues（操作系统熵池），老浏览器回退 Math.random
+  // ⚠️ 只改本页随机源，不动其他逻辑！
+  function secureRand(){
+    if(window.crypto && window.crypto.getRandomValues){
+      var a=new Uint32Array(1); window.crypto.getRandomValues(a);
+      return a[0]/4294967296;
+    }
+    return Math.random();
+  }
   function tossLine(){
-    var s=0; for(var i=0;i<3;i++) s+=Math.random()<0.5?1:0;
+    var s=0; for(var i=0;i<3;i++) s+=secureRand()<0.5?1:0;
     // 3正=老阳9, 2正=少阳7, 1正=少阴8, 0正=老阴6
     return s===3?9:s===2?7:s===1?8:6;
   }
