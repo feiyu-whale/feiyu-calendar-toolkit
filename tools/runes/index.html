@@ -64,7 +64,7 @@
   <div id="result"></div>
 
   <div class="hint">卢恩符文属北欧古文化 · 属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
-  <div class="ver">v2-手动翻 20261016</div>
+  <div class="ver">v3-解读藏 20261016</div>
 </div>
 
 <script>
@@ -156,6 +156,8 @@
     });
     h+='</div><div style="text-align:center;color:#6b8a99;font-size:11px">点击符文翻开</div></div>';
 
+    // 解读（2026-10-16 改为「全翻完才显示」，防剧透）
+    h+='<div id="interpBox" style="display:none">';
     h+='<div class="sect">📖 解读</div><div class="interp">';
     h+='<div class="disclaim">⚠️ 卢恩符文属北欧古文化，以下为传统符文义，非科学预测，仅供娱乐参考。</div>';
     var labels = mode===1?['今日指引']:['局势现状','可行行动','可能结果'];
@@ -165,7 +167,9 @@
       h+='<ul><li>'+(p.reversed? r[3] : r[2])+'</li></ul>';
     });
     h+='<p class="note">卢恩符文是古老的象征符号体系，可作自省与思考的引子；解读因人而异，勿作命运断言。</p>';
-    h+='</div>';
+    h+='</div></div>';
+    // 未翻牌时的遮罩提示（翻完后隐藏）
+    h+='<div id="interpLock" class="interp" style="text-align:center;color:#6b8a99">🔒 翻开全部符文后，显示解读</div>';
 
     // 2026-10-16 趣味彩蛋：连10次一模一样 → 弹窗
     var _sig=picked.map(function(p){return p.rune[0]+(p.reversed?'R':'U');}).join('|');
@@ -174,8 +178,16 @@
 
     res.innerHTML=h;
     res.querySelectorAll('.rune').forEach(function(el){
-      el.addEventListener('click',function(){ el.classList.toggle('flipped'); });
+      el.addEventListener('click',function(){ el.classList.toggle('flipped'); checkReveal(); });
     });
+    // 2026-10-16 全翻完才显示解读（防剧透）
+    function checkReveal(){
+      var all=res.querySelectorAll('.rune');
+      var flipped=res.querySelectorAll('.rune.flipped');
+      var box=document.getElementById('interpBox'), lock=document.getElementById('interpLock');
+      if(all.length>0 && flipped.length===all.length){ if(box)box.style.display=''; if(lock)lock.style.display='none'; }
+      else { if(box)box.style.display='none'; if(lock)lock.style.display=''; }
+    }
     // 2026-10-16 改为纯手动翻：移除原「延迟 500ms 自动翻开」，投掷后需手动点才翻（老爹指定）
   }
 

@@ -67,7 +67,7 @@
   <div id="result"></div>
 
   <div class="hint">塔罗为西洋神秘学文化，属娱乐参考，非科学预测 🐳<br>请勿据此做重大决定</div>
-  <div class="ver">v2-手动翻 20261016</div>
+  <div class="ver">v3-解读藏 20261016</div>
 </div>
 
 <script>
@@ -189,7 +189,8 @@
     });
     h+='</div><div style="text-align:center;color:#8a7399;font-size:11px">点击牌面翻开</div></div>';
 
-    // 解读
+    // 解读（2026-10-16 改为「全翻完才显示」，防剧透：未翻牌时先藏起来）
+    h+='<div id="interpBox" style="display:none">';
     h+='<div class="sect">📖 解读</div><div class="interp">';
     h+='<div class="disclaim">⚠️ 塔罗属西洋神秘学文化，以下为传统牌义，非科学预测，仅供娱乐参考。</div>';
     var labels = n===1?['今日指引']:['过去','现在','未来'];
@@ -199,7 +200,9 @@
       h+='<ul><li>'+(p.reversed? c.rev : c.up)+'</li></ul>';
     });
     h+='<p class="note">塔罗是象征性的自省工具，解读因人而异；请当娱乐与思考引子，勿作命运断言。</p>';
-    h+='</div>';
+    h+='</div></div>';
+    // 未翻牌时的遮罩提示（翻完后隐藏）
+    h+='<div id="interpLock" class="interp" style="text-align:center;color:#8a7399">🔒 翻开全部牌面后，显示解读</div>';
 
     // 2026-10-16 趣味彩蛋：会话内连10次抽到一模一样的牌 → 弹窗（纯内存，不存储）
     var _sig=picked.map(function(p){return p.card.name+(p.reversed?'R':'U');}).join('|');
@@ -209,8 +212,16 @@
     res.innerHTML=h;
     // 点击翻牌
     res.querySelectorAll('.tcard').forEach(function(el){
-      el.addEventListener('click',function(){ el.classList.toggle('flipped'); });
+      el.addEventListener('click',function(){ el.classList.toggle('flipped'); checkReveal(); });
     });
+    // 2026-10-16 全翻完才显示解读（防剧透）
+    function checkReveal(){
+      var all=res.querySelectorAll('.tcard');
+      var flipped=res.querySelectorAll('.tcard.flipped');
+      var box=document.getElementById('interpBox'), lock=document.getElementById('interpLock');
+      if(all.length>0 && flipped.length===all.length){ if(box)box.style.display=''; if(lock)lock.style.display='none'; }
+      else { if(box)box.style.display='none'; if(lock)lock.style.display=''; }
+    }
     // 2026-10-16 改为纯手动翻牌：移除原「延迟 500ms 自动翻开」，抽牌后需手动点牌才翻（老爹指定）
   }
 
