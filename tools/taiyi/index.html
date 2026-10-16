@@ -113,6 +113,9 @@
   if(!T){ document.getElementById('result').innerHTML='<div class="err">引擎加载失败</div>'; return; }
 
   // 5x5 式盘布局（南上北下）：外环十六辰 + 内三×三九宫
+  // 2026-10-16 盘面重排：内九宫位置照库 NUM_TO_GONG（权威），不再用手写映射
+  // NUM_TO_GONG={1:乾,2:午,3:艮,4:卯,5:中,6:酉,7:坤,8:子,9:巽}
+  // ⚠️ 只改本页展示逻辑，不要去动底层 react-taiyi 库！
   var RIM = [
     ['巽','巳','午','未','坤'],
     ['辰', null, null, null, '申'],
@@ -120,11 +123,18 @@
     ['寅', null, null, null, '戌'],
     ['艮','丑','子','亥','乾']
   ];
-  // 内宫（行,列 从1起）→ 宫数（传统十六神式盘布局）
-  var INNER = {
-    '1,1':{g:9,note:'绝阴'}, '1,2':{g:2,note:'易气'}, '1,3':{g:7},
-    '2,1':{g:4,note:'绝气'}, '2,2':{g:5}, '2,3':{g:6,note:'绝气'},
-    '3,1':{g:3}, '3,2':{g:8,note:'易气'}, '3,3':{g:1,note:'绝阳'}
+  // 内宫 = 库 NUM_TO_GONG 的辰名 → 九宫号（每格标宫号，盘位由库钦定）
+  var NUM_TO_GONG = {1:'乾',2:'午',3:'艮',4:'卯',5:'中',6:'酉',7:'坤',8:'子',9:'巽'};
+  // 辰名 → 宫号（反查）
+  function gongOfChen(chen){
+    for(var g in NUM_TO_GONG){ if(NUM_TO_GONG[g]===chen) return parseInt(g,10); }
+    return null;
+  }
+  // 3x3 内盘每格对应的辰（南上北下、左东右西的常规排法）
+  var INNER_CHEN = {
+    '1,1':'巽', '1,2':'午', '1,3':'坤',
+    '2,1':'卯', '2,2':'中', '2,3':'酉',
+    '3,1':'艮', '3,2':'子', '3,3':'乾'
   };
   var STAR_CLASS = {
     '太乙':'taiyi', '文昌':'key','始击':'key','定計':'key','定计':'key',
@@ -184,17 +194,15 @@
           }
           h += '</div></div>';
         } else {
-          // 内九宫
-          var key = (rr)+','+(cc+1); // 行从0起转1起
-          var innerKey = ((rr-0)) + ',' + (cc+1);
-          // INNER 用 (行1起,列1起)
+          // 内九宫：位置由库 NUM_TO_GONG 定（2026-10-16 盘面重排）
           var ik = (rr+1)+','+(cc+1);
-          var info = INNER[ik];
-          if(!info){ h += '<div class="bcell"></div>'; continue; }
+          var chen = INNER_CHEN[ik];
+          var gnum = chen?gongOfChen(chen):null;
+          if(!chen || gnum==null){ h += '<div class="bcell"></div>'; continue; }
           h += '<div class="bcell inner">';
-          h += '<div class="gnum">'+GONG_CN[info.g-1]+'宫'+(info.note?' <span class="note">'+info.note+'</span>':'')+'</div>';
-          if(doorMap[info.g]) h += '<div class="door">'+doorMap[info.g]+'门</div>';
-          if(wzMap[info.g]) h += '<div class="wz">'+wzMap[info.g]+'</div>';
+          h += '<div class="gnum">'+chen+'宫'+(chen==='中'?'':'('+GONG_CN[gnum-1]+')')+'</div>';
+          if(doorMap[gnum]) h += '<div class="door">'+doorMap[gnum]+'门</div>';
+          if(wzMap[gnum]) h += '<div class="wz">'+wzMap[gnum]+'</div>';
           h += '</div>';
         }
       }
