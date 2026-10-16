@@ -89,6 +89,22 @@
     return Math.random();
   }
   function pick(arr){ return arr[Math.floor(secureRand()*arr.length)]; }
+  // 2026-10-16 趣味彩蛋：会话内连10次一模一样 → 弹窗（纯内存，不存储）
+  // ⚠️ 只改本页展示逻辑，不动其他逻辑！
+  var _eggStreak={sig:'',n:0};
+  function streakCheck(sig){
+    if(_eggStreak.sig===sig){ _eggStreak.n++; } else { _eggStreak.sig=sig; _eggStreak.n=1; }
+    return _eggStreak.n===10 ? '你的运气过于奇特' : '';
+  }
+  function showEgg(msg){
+    setTimeout(function(){
+      var mask=document.createElement('div');
+      mask.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer';
+      mask.innerHTML='<div style="background:#20203a;border:1px solid #5a5a9a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:22px;font-weight:700;color:#b0b0f0;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#a0a0c0;margin-bottom:16px">连掷 10 次一模一样的骰，天意难测啊 🌀</div><div style="font-size:12px;color:#8080a0">（点任意处关闭）</div></div>';
+      mask.onclick=function(){ mask.remove(); };
+      document.body.appendChild(mask);
+    }, 400);
+  }
 
   function roll(){
     var res=document.getElementById('result');
@@ -121,6 +137,11 @@
       out+='<p>串起来：关于「<b>'+HOUSE_KW[house]+'</b>」，你正带着「<b>'+PLANET_KW[planet]+'</b>」的能量，用「<b>'+SIGN_KW[sign]+'</b>」的方式去经历。</p>';
       out+='<p class="note">占星骰子解读较随机，宜当思考的引子、别当断言；同一问题多掷几次意义会发散。</p>';
       out+='</div>';
+
+      // 2026-10-16 趣味彩蛋：连10次一模一样 → 弹窗
+      var _sig=sign+'|'+planet+'|'+house;
+      var blow=streakCheck(_sig);
+      if(blow) showEgg(blow);
 
       res.innerHTML=out;
     }, 650);
