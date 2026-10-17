@@ -215,7 +215,7 @@
   </div>
 
   <div class="foot">🐳 大肥鱼出品 · 纯本地回放 · 零联网 · 零存储（刷新即重置）<br>游戏虚构，仅供娱乐，不构成任何投资建议</div>
-  <div class="ver" style="text-align:center;color:#3a4a2a;font-size:10px;margin-top:8px">v2-双市场 20261016</div>
+  <div class="ver" style="text-align:center;color:#3a4a2a;font-size:10px;margin-top:8px">v6-加载弹窗 20261017</div>
 </body>
 
 <script>
@@ -619,6 +619,11 @@
   function firstDate(code){ return DATA[code].k[0][0]; }
 
   function advance(){
+    // 2026-10-17 修复：数据未加载完成时点击会崩（DATA 为 null）
+    if(!DATA || !codes || codes.length===0){
+      setMsg('⏳ 行情数据还在加载，请稍候…');
+      return;
+    }
     var mode=document.getElementById('stepMode').value;
     var d=new Date(state.date+'T12:00:00');
     var next=new Date(d);
@@ -1230,6 +1235,8 @@
 
   // 事件委托
   document.getElementById('market').addEventListener('click',function(e){
+    // 2026-10-17 修复：数据没加载完时点击，避免整个页面崩掉
+    if(!DATA || !codes || codes.length===0){ setMsg('⏳ 行情数据还在加载，请稍候…'); return; }
     var b=e.target.closest('button[data-buy]');
     if(b){ buy(b.getAttribute('data-buy')); return; }
     var sh=e.target.closest('button[data-short]');
@@ -1252,6 +1259,19 @@
   document.getElementById('resetBtn').addEventListener('click',reset);
   var _expBtn=document.getElementById('exportBtn'); if(_expBtn) _expBtn.addEventListener('click',exportCsv);
 
+  // 2026-10-17 进页面先弹提示：数据量较大，需加载一会儿
+  (function(){
+    var mask=document.createElement('div');
+    mask.id='loadMask';
+    mask.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    mask.innerHTML='<div style="background:#1a2410;border:1px solid #4a6a2a;border-radius:14px;padding:26px 28px;text-align:center;max-width:320px">'
+      +'<div style="font-size:32px;margin-bottom:12px">⏳</div>'
+      +'<div style="font-size:15px;font-weight:700;color:#a8d060;margin-bottom:10px">正在加载行情数据</div>'
+      +'<div style="font-size:13px;color:#8aa06a;line-height:1.7">本游戏数据量较大（约 13MB）<br>需要加载一会儿，请稍候…</div>'
+      +'</div>';
+    document.body.appendChild(mask);
+  })();
+
   // 载入数据（2026-10-16 A股+美股双市）
   Promise.all([
     fetch('data.json').then(function(r){ return r.json(); }),
@@ -1266,8 +1286,11 @@
     var earliest=codes[0];
     for(var i=0;i<codes.length;i++){ if(DATA[codes[i]].first < DATA[earliest].first) earliest=codes[i]; }
     CFG.start=DATA[earliest].first;
+    // 2026-10-17 加载完成，关闭提示弹窗
+    var lm=document.getElementById('loadMask'); if(lm) lm.remove();
     reset();
   }).catch(function(e){
+    var lm=document.getElementById('loadMask'); if(lm) lm.remove();
     document.body.insertAdjacentHTML('afterbegin','<p style="color:#e08080;text-align:center">数据加载失败：'+e.message+'</p>');
   });
 
