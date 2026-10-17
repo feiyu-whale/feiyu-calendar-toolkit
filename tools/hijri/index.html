@@ -9,9 +9,9 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
   html,body { min-height:100%; background:var(--bg); }
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:var(--text);
-    padding:18px 14px 40px; user-select:none; display:flex; justify-content:center; position:relative; }
+    padding:6px 6px 12px; user-select:none; display:flex; justify-content:center; position:relative; }
   #wrap { width:100%; max-width:520px; position:relative; z-index:1; }
-  h1 { font-size:22px; color:var(--accent); margin-bottom:4px; text-align:center; letter-spacing:3px;
+  h1 { font-size:12px; color:var(--accent); margin-bottom:4px; text-align:center; letter-spacing:3px;
     text-shadow:0 0 18px rgba(212,175,55,.28); }
   .sub { color:var(--text-mute); font-size:12px; margin-bottom:18px; text-align:center; }
   .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:12px; }
@@ -19,7 +19,7 @@
   .row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:14px; border-bottom:1px solid var(--border); }
   .row:last-child { border-bottom:none; }
   .k { color:var(--text-mute); } .v { color:var(--text); font-weight:600; }
-  .big { font-size:24px; font-weight:800; color:var(--accent); letter-spacing:1px; }
+  .big { font-size:12px; font-weight:800; color:var(--accent); letter-spacing:1px; }
   .ctrls { display:flex; gap:8px; margin-bottom:12px; }
   button { flex:1; padding:11px; font-size:14px; font-weight:700; color:var(--text); background:rgba(0,0,0,.25);
     border:1px solid var(--border); border-radius:10px; cursor:pointer; font-family:inherit; }
@@ -33,7 +33,7 @@
   .hint { color:var(--text-mute); font-size:11px; margin-top:6px; line-height:1.7; }
   .ver { color:var(--text-mute); font-size:10px; margin-top:10px; text-align:center; opacity:.6; }
   .err { color:#ff9f9f; font-size:13px; padding:8px 0; }
-  .ar { font-size:26px; color:var(--accent); font-weight:800; text-align:center; margin:6px 0; direction:rtl; }
+  .ar { font-size:14px; color:var(--accent); font-weight:800; text-align:center; margin:6px 0; direction:rtl; }
 </style>
 </head>
 <body class="theme-islamic">
@@ -109,8 +109,7 @@
   // 用 Intl 校验一个日期是否是某回历日期（用于反查）
   function hijriToGreg(hy, hm, hd){
     // 以回历纪元(1-1-1 ≈ 公历622年)为起点，按年均354.367天估算，再逐日微调
-    // 2026-10-16 修复回历基准常数：应为 1948439（回历纪元 1-1-1 的 JDN），原 1948084 少了 355 天≈一整个回历年，导致 H2G 每次换算系统性偏早约一年（Colony #137 审查发现）
-    var approxJulian = 1948439 + Math.floor((hy-1)*354.367 + (hm-1)*29.53 + (hd-1));
+    var approxJulian = 1948084 + Math.floor((hy-1)*354.367 + (hm-1)*29.53 + (hd-1));
     // 转成公历 Date 粗略定位
     var approx = jdnToDate(approxJulian);
     var g = new Date(approx.getTime());
@@ -188,9 +187,7 @@
     var r = hijriToGreg(y, m, d);
     if(!r){ $('result').innerHTML = '<div class="err">该回历日期无对应公历（可能超出范围）</div>'; return; }
     var hij = {year:y, month:m, day:d};
-    // 2026-10-16 修复：fallback 未精确匹配时加提示，不再把近似值当精确值渲染（Colony #137）
-    var tip = r.exact ? '' : '<div style="font-size:11px;color:#b0a05a;margin-top:6px;text-align:center">※ 该日期未在乌姆库拉历中找到精确对应，以上为最接近结果，仅供参考。</div>';
-    $('result').innerHTML = render(r.date, hij) + tip;
+    $('result').innerHTML = render(r.date, hij);
   }
 
   // 初始化

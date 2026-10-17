@@ -10,12 +10,12 @@
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif; color:#d8e8d8;
     padding:16px 12px 40px; user-select:none; display:flex; justify-content:center; }
   #wrap { width:100%; max-width:560px; }
-  h1 { font-size:22px; text-align:center; color:#8fd0a0; margin-bottom:4px; letter-spacing:3px; }
+  h1 { font-size:12px; text-align:center; color:#8fd0a0; margin-bottom:4px; letter-spacing:3px; }
   .sub { text-align:center; color:#6b8a75; font-size:12px; margin-bottom:16px; line-height:1.6; }
   .card { background:linear-gradient(160deg,#142a1a,#0d1c12); border:1px solid #2a5a3a;
     border-radius:12px; padding:14px; margin-bottom:11px; }
   .card h3 { font-size:13px; color:#7fc890; margin-bottom:10px; border-left:3px solid #7fc890; padding-left:8px; }
-  button.go { width:100%; padding:14px; font-size:17px; font-weight:700; color:#0a1810;
+  button.go { width:100%; padding:14px; font-size:11px; font-weight:700; color:#0a1810;
     background:linear-gradient(160deg,#8fd0a0,#4a9868); border:none; border-radius:11px;
     cursor:pointer; font-family:inherit; letter-spacing:2px; }
   button.go:active { transform:scale(.98); }
@@ -31,10 +31,10 @@
   .rune .face { position:absolute; width:100%; height:100%; backface-visibility:hidden;
     border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .rune .back { background:linear-gradient(160deg,#2a5a3a,#1a4028); border:1px solid #4a9868;
-    font-size:44px; color:#8fd0a0; }
+    font-size:14px; color:#8fd0a0; }
   .rune .front { background:linear-gradient(160deg,#142a1a,#0d1c12); border:1px solid #4a9868;
     transform:rotateY(180deg); padding:10px; text-align:center; }
-  .rune .glyph { font-size:40px; color:#a8f0c0; line-height:1.1; margin-bottom:6px; }
+  .rune .glyph { font-size:14px; color:#a8f0c0; line-height:1.1; margin-bottom:6px; }
   .rune .nm { font-size:13px; color:#8fd0a0; font-weight:700; }
   .rune .pos { font-size:11px; color:#6b8a75; margin-top:4px; }
   .rune .face.front.rev .glyph { transform:rotate(180deg); }  .sect { font-size:13px; color:#8fd0a0; margin:16px 0 8px; border-left:3px solid #7fc890; padding-left:8px; }
@@ -131,7 +131,7 @@
     setTimeout(function(){
       var mask=document.createElement('div');
       mask.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer';
-      mask.innerHTML='<div style="background:#1e2a20;border:1px solid #4a7a5a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:22px;font-weight:700;color:#a0f0c0;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#90b0a0;margin-bottom:16px">连抽 10 次一模一样的签，天意难测啊 🌀</div><div style="font-size:12px;color:#708078">（点任意处关闭）</div></div>';
+      mask.innerHTML='<div style="background:#1e2a20;border:1px solid #4a7a5a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:12px;font-weight:700;color:#a0f0c0;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#90b0a0;margin-bottom:16px">连抽 10 次一模一样的签，天意难测啊 🌀</div><div style="font-size:12px;color:#708078">（点任意处关闭）</div></div>';
       mask.onclick=function(){ mask.remove(); };
       document.body.appendChild(mask);
     }, 400);

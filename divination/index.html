@@ -10,27 +10,27 @@
     margin:0; min-height:100vh;
     background:radial-gradient(120% 90% at 50% 0%, #2a1a3a 0%, #150e22 55%, #0a0612 100%);
     font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    color:#e8d8f0; padding:12px 10px 20px; user-select:none;
+    color:#e8d8f0; padding:22px 14px 48px; user-select:none;
   }
-  .back { display:inline-block; text-decoration:none; color:#9b83b3; font-size:12px; margin-bottom:8px;
+  .back { display:inline-block; text-decoration:none; color:#9b83b3; font-size:10px; margin-bottom:6px;
     padding:6px 12px; border:1px solid #3a2a4c; border-radius:20px; }
   .back:active { background:#1e1428; }
-  h1 { font-size:21px; text-align:center; color:#d0b0ff; font-weight:700; letter-spacing:2px; margin:2px 0 4px; }
-  .sub { text-align:center; color:#8a7399; font-size:13px; margin-bottom:10px; line-height:1.7; }
-  .warn { text-align:center; color:#b08a5a; font-size:11px; margin-bottom:20px; line-height:1.6;
+  h1 { font-size:12px; text-align:center; color:#d0b0ff; font-weight:700; letter-spacing:2px; margin:4px 0 6px; }
+  .sub { text-align:center; color:#8a7399; font-size:10px; margin-bottom:10px; line-height:1.7; }
+  .warn { text-align:center; color:#b08a5a; font-size:10px; margin-bottom:20px; line-height:1.6;
     background:#1e1428; border:1px solid #3a2a1c; border-radius:9px; padding:8px 12px; max-width:720px; margin-left:auto; margin-right:auto; }
-  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:720px; margin:0 auto; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:6px; max-width:720px; margin:0 auto; }
   a.tool {
     display:block; text-decoration:none; color:inherit;
     background:linear-gradient(160deg,#2a1e40,#180f28);
-    border:1px solid #4a3a6a; border-radius:14px; padding:18px 14px; transition:.18s;
+    border:1px solid #4a3a6a; border-radius:14px; padding: 12px 10px; transition:.18s;
     box-shadow:0 4px 20px rgba(80,40,120,.25);
   }
   a.tool:active { transform:scale(.96); background:#33244a; }
-  a.tool .icon { font-size:28px; display:block; margin-bottom:3px; line-height:1; }
-  a.tool .name { font-size:13px; font-weight:700; color:#8fe0c0; text-align:center; }
-  a.tool .desc { font-size:9.5px; color:#6b9f93; margin-top:2px; line-height:1.25; text-align:center; }
-  .foot { text-align:center; color:#4a3a5c; font-size:12px; margin-top:32px; line-height:1.9; }
+  a.tool .icon { font-size:20px; display:block; margin-bottom:8px; }
+  a.tool .name { font-size:10px; font-weight:700; color:#d0b0ff; }
+  a.tool .desc { font-size:10px; color:#9b83b3; margin-top:4px; line-height:1.55; }
+  .foot { text-align:center; color:#4a3a5c; font-size:10px; margin-top:32px; line-height:1.9; }
   .ver { text-align:center; color:#3a2e4c; font-size:10px; margin-top:10px; }
 </style>
 </head>
@@ -134,7 +134,6 @@
   </div>
 
   <div class="foot">🐳 大肥鱼出品 · 传统术数与天文小工具<br>星象天文可作科普，命理内容仅供娱乐</div>
-  <div class="ver">v2.1-加易卦64 20261015</div>
-<!-- v1-紧凑三列 20261017 -->
+  <div class="ver">v1-统一紧凑 20261017 v2.1-加易卦64 20261015</div>
 </body>
 </html>

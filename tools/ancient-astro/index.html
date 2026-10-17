@@ -10,7 +10,7 @@
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif; color:#d8d0e8;
     padding:16px 13px 40px; user-select:none; display:flex; justify-content:center; }
   #wrap { width:100%; max-width:540px; }
-  h1 { font-size:20px; text-align:center; color:#b0a0e0; margin-bottom:4px; letter-spacing:2px; }
+  h1 { font-size:12px; text-align:center; color:#b0a0e0; margin-bottom:4px; letter-spacing:2px; }
   .sub { text-align:center; color:#5a5578; font-size:12px; margin-bottom:16px; }
   .tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:14px; }
   .tabs button { padding:9px 2px; font-size:12px; font-weight:600; color:#9a90c0; background:#131426;
@@ -31,7 +31,7 @@
     color:#fff; border:1px solid #6a5ac9; border-radius:9px; cursor:pointer; font-family:inherit; white-space:nowrap; }
   button.go:active { transform:scale(.96); }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .gz { font-size:22px; font-weight:800; color:#ffd479; letter-spacing:3px; text-align:center; padding:8px 0; }
+  .gz { font-size:12px; font-weight:800; color:#ffd479; letter-spacing:3px; text-align:center; padding:8px 0; }
   .hz { font-size:15px; color:#c8c0e0; line-height:1.9; }
   .hz b { color:#b0a0e0; }
   .hint { text-align:center; color:#4a4668; font-size:11px; margin-top:12px; line-height:1.7; }
@@ -188,7 +188,7 @@
     var zhi=zhiOfHour(h);
     var idx=SHICHEN.findIndex(function(s){return s[0]===zhi;});
     document.getElementById('hourOut').innerHTML =
-      '<div style="font-size:18px"><b>'+String(h).padStart(2,'0')+':00</b> → <span style="color:#ffd479;font-weight:800">'+zhi+'时</span></div>'+
+      '<div style="font-size:11px"><b>'+String(h).padStart(2,'0')+':00</b> → <span style="color:#ffd479;font-weight:800">'+zhi+'时</span></div>'+
       '<div style="margin-top:6px;color:#8a86a8">该时辰区间：'+SHICHEN[idx][1]+'</div>';
   };
   // 十二时辰对照表
@@ -203,7 +203,7 @@
     var v=document.getElementById('xiuDate').value; if(!v) return;
     var lunar=parseDate(v).getLunar();
     document.getElementById('xiuOut').innerHTML =
-      '<div style="font-size:18px">值宿：<span style="color:#ffd479;font-weight:800">'+lunar.getXiu()+'宿</span>　<span style="color:#7fd6a0">'+lunar.getXiuLuck()+'</span></div>'+
+      '<div style="font-size:11px">值宿：<span style="color:#ffd479;font-weight:800">'+lunar.getXiu()+'宿</span>　<span style="color:#7fd6a0">'+lunar.getXiuLuck()+'</span></div>'+
       '<div style="margin-top:8px;color:#8a86a8">'+lunar.getXiuSong().replace(/\n/g,'<br>')+'</div>'+
       '<div style="margin-top:8px">宫位：<b>'+lunar.getZheng()+'</b>　禽兽：<b>'+lunar.getAnimal()+'</b>　</div>';
   };

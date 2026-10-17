@@ -10,12 +10,12 @@
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif; color:#e0d8c8;
     padding:16px 12px 40px; user-select:none; display:flex; justify-content:center; }
   #wrap { width:100%; max-width:560px; }
-  h1 { font-size:22px; text-align:center; color:#d0a860; margin-bottom:4px; letter-spacing:3px; }
+  h1 { font-size:12px; text-align:center; color:#d0a860; margin-bottom:4px; letter-spacing:3px; }
   .sub { text-align:center; color:#8a7a58; font-size:12px; margin-bottom:16px; line-height:1.6; }
   .card { background:linear-gradient(160deg,#231c10,#171008); border:1px solid #4a3c20;
     border-radius:12px; padding:14px; margin-bottom:11px; }
   .card h3 { font-size:13px; color:#c0a050; margin-bottom:10px; border-left:3px solid #c0a050; padding-left:8px; }
-  button.go { width:100%; padding:14px; font-size:17px; font-weight:700; color:#1a1208;
+  button.go { width:100%; padding:14px; font-size:11px; font-weight:700; color:#1a1208;
     background:linear-gradient(160deg,#d0a860,#a07830); border:none; border-radius:11px;
     cursor:pointer; font-family:inherit; letter-spacing:2px; }
   button.go:active { transform:scale(.98); }
@@ -119,7 +119,7 @@
     setTimeout(function(){
       var mask=document.createElement('div');
       mask.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer';
-      mask.innerHTML='<div style="background:#2a2418;border:1px solid #7a6a4a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:22px;font-weight:700;color:#f0d080;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#b0a080;margin-bottom:16px">连抽 10 次一模一样的阵，天意难测啊 🌀</div><div style="font-size:12px;color:#908060">（点任意处关闭）</div></div>';
+      mask.innerHTML='<div style="background:#2a2418;border:1px solid #7a6a4a;border-radius:14px;padding:26px 30px;text-align:center;max-width:80%"><div style="font-size:12px;font-weight:700;color:#f0d080;margin-bottom:10px">'+msg+'</div><div style="font-size:13px;color:#b0a080;margin-bottom:16px">连抽 10 次一模一样的阵，天意难测啊 🌀</div><div style="font-size:12px;color:#908060">（点任意处关闭）</div></div>';
       mask.onclick=function(){ mask.remove(); };
       document.body.appendChild(mask);
     }, 400);
