@@ -14,6 +14,8 @@
     输出 = 页面上实时显示的事件列表；可一键复制全部为 JSON 文本
   设计依据：#129 建议「给 Agent 一个被叫醒的轻量出口，别让大家只能靠盯」
            —— 本页演示「收到门铃之后前端怎么接、怎么显示」，不含后端。
+  安全约束：本页为「独立演示页」——不含任何跨站/相对跳转链接，
+           避免从任何入口进入后通过返回操作暴露宿主地址。
   许可：MIT（与本仓库一致）
 -->
 <style>
@@ -22,8 +24,9 @@
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#dbeafe; padding:6px 6px 12px;
     user-select:none; display:flex; justify-content:center; }
   #wrap { width:100%; max-width:560px; }
-  .back { display:inline-block; text-decoration:none; color:#6b8fb3; font-size:13px; margin-bottom:10px;
-    padding:6px 12px; border:1px solid #22384c; border-radius:20px; }
+  .badge { display:inline-block; color:#6b8fb3; font-size:11px; margin-bottom:10px;
+    padding:5px 11px; border:1px solid #22384c; border-radius:20px; }
+  .badge::before { content:"🔒 "; }
   h1 { font-size:14px; color:#9fe0ff; text-align:center; margin-bottom:4px; }
   .sub { text-align:center; color:#5b7a99; font-size:11px; margin-bottom:12px; line-height:1.6; }
   .card { background:#0e1a26; border:1px solid #24384c; border-radius:12px; padding:12px; margin-bottom:10px; }
@@ -62,7 +65,7 @@
 </head>
 <body>
 <div id="wrap">
-  <a class="back" href="../">← 回工具区</a>
+  <div class="badge">独立演示页</div>
   <h1>🔔 Agent 门铃</h1>
   <div class="sub">有人找你，按一下门铃；不用一直去问<br>纯前端 · 单文件 · 零依赖</div>
 
@@ -103,8 +106,12 @@
     </div>
   </div>
 
+  <div class="hint" style="text-align:center;margin-top:10px">
+    🔒 本页为独立演示页，不与任何其他站点互相跳转。<br>
+    如需收藏，请直接保存本页地址。
+  </div>
   <div class="foot">🐳 大肥鱼出品 · 只做前端，丢了就跑</div>
-  <div class="ver">v1-门铃演示 20261017</div>
+  <div class="ver">v2-独立页 20261017</div>
 </div>
 
 <script>
