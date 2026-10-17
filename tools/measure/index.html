@@ -82,7 +82,7 @@
   <div class="anchor" id="anchor"></div>
 
   <div class="foot">🐳 大肥鱼出品 · 数据来源见底部说明</div>
-  <div class="ver">v1-中国历代 20261016</div>
+  <div class="ver">v2-加古罗马 20261017</div>
 </div>
 
 <script src="data.js"></script>
@@ -92,7 +92,19 @@
   const $ = id => document.getElementById(id);
   let curCat = "length";
 
-  function unitName(k){ return (MEASURE_UNIT_NAMES[k] || k); }
+  // 古罗马分组用拉丁原名做键，显示时「中文（拉丁名）」
+  var ROME_PREFIX = { length:"rome", volume:"rome", weight:"rome" };
+  function isRomeGroup(gid){ return gid === "rome"; }
+  function unitName(k, gid){
+    var cn = MEASURE_UNIT_NAMES[k];
+    if (isRomeGroup(gid)) {
+      var latin = k.replace(/_/g, " ");
+      return cn ? (cn + "（" + latin + "）") : latin;
+    }
+    return cn || k;
+  }
+  // 兼容旧调用（只传键时）
+  function unitNamePlain(k){ return MEASURE_UNIT_NAMES[k] || k.replace(/_/g," "); }
   function fmt(n){
     if (!isFinite(n)) return "—";
     if (n === 0) return "0";
@@ -132,7 +144,7 @@
     const units = cat.groups[groupId].units;
     Object.keys(units).forEach(u => {
       const o = document.createElement("option");
-      o.value = u; o.textContent = unitName(u);
+      o.value = u; o.textContent = unitName(u, groupId);
       sel.appendChild(o);
     });
     if (prev && units[prev] != null) sel.value = prev;
@@ -179,8 +191,8 @@
     const out = baseVal / tUnits[tu];             // 从基准转到目标
     $("tgtVal").value = fmt(out);
     const sName = cat.groups[sg].name, tName = cat.groups[tg].name;
-    $("hint").innerHTML = sName + " <b>" + v + " " + unitName(su) + "</b> = "
-      + tName + " <b>" + fmt(out) + " " + unitName(tu) + "</b>";
+    $("hint").innerHTML = sName + " <b>" + v + " " + unitName(su, sg) + "</b> = "
+      + tName + " <b>" + fmt(out) + " " + unitName(tu, tg) + "</b>";
   }
 
   function renderAnchor(){
