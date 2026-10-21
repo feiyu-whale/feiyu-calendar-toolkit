@@ -47,7 +47,7 @@
 
   <div class="card">
     <div class="lbl">输入汉字</div>
-    <textarea id="in" placeholder="如：中國龍">中國龍</textarea>
+    <textarea id="in" placeholder="如：中國龍"></textarea>
     <div class="row" style="margin-top:10px">
       <button data-m="inline" class="on">注音连写</button>
       <button data-m="stack">注音在上</button>
@@ -80,7 +80,7 @@
       ④ 零声母音节用 y/w 改写（yi→ㄧ，wu→ㄨ，yu→ㄩ，yong→ㄩㄥ）。
     </div>
   </div>
-  <div class="ver">v1.0.0-注音对照 20261021</div>
+  <div class="ver">v1.0.2-修连写模式 20261022</div>
 </div>
 <script>
 // 【zhuyin】汉字 → 注音符号(Bopomofo)，附拼音与声韵母对照表。
@@ -164,21 +164,22 @@
     if(!text){ $("out").innerHTML = "<span style='color:#6a5f90'>输入汉字后显示</span>"; return; }
     load().then(function(){
       var chars = Array.from(text);
-      $("out").innerHTML = chars.map(function(c){
+      // 三种显示模式：
+      //   inline = 注音连写（逐字 汉字+右侧小字注音，读作一串）
+      //   stack  = 汉字上方一行注音（逐字上下叠）
+      //   both   = 汉字上方注音、下方拼音
+      function cell(c){
         if(c === "\n") return "<br>";
-        if(!isHan(c)) return "<span class='ch'>"+c+"</span>";
+        if(!isHan(c)) return "<span class='ch'>" + c + "</span>";
         var py = pyOf(c).toLowerCase(), zy = toZy(py) || "—";
+        // 连写 inline：注音小字贴在汉字右侧（横向连成一串，最省地方）
+        // 叠字 stack：注音在汉字正上方（一字一格）
+        // 注音+拼音 both：上方注音、下方拼音
         if(mode === "stack") return "<span class='ch'><span class='zy'>"+zy+"</span>"+c+"</span>";
-        if(mode === "both") return "<span class='ch'><span class='zy'>"+zy+"</span><span class='py'>"+py+"</span>"+c+"</span>";
+        if(mode === "both")  return "<span class='ch'><span class='zy'>"+zy+"</span><span class='py'>"+py+"</span>"+c+"</span>";
         return "<span class='ch'>"+c+"<span class='zy'>"+zy+"</span></span>";
-      }).join(mode === "inline" ? "" : "");
-      if(mode === "inline"){
-        $("out").innerHTML = chars.map(function(c){
-          if(c === "\n") return "<br>";
-          if(!isHan(c)) return c;
-          return "<span class='ch'><span class='py'>"+toZy(pyOf(c).toLowerCase())+"</span>"+c+"</span>";
-        }).join("");
       }
+      $("out").innerHTML = chars.map(cell).join("");
     }).catch(function(e){
       $("out").innerHTML = "<span style='color:#ff8fa3'>数据加载失败："+e.message+"</span>";
     });
