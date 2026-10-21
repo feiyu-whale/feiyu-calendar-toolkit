@@ -35,6 +35,11 @@
   .soon-tag { display:inline-block; margin-top:3px; font-size:8px; color:#6b8fb3; border:1px solid #2e4f6e; border-radius:6px; padding:0 4px; line-height:1.5; }
   .more { max-width:720px; margin:10px auto 0; text-align:center; color:#3f5a75; font-size:12px;
     border:1px dashed #23405c; border-radius:10px; padding:8px; line-height:1.5; }
+  .support-zone { display:block; text-align:center; margin-top:10px; padding:10px; border-radius:12px;
+    background:#12202e; border:1px dashed #2a4258; text-decoration:none; }
+  .support-zone .icon { font-size:20px; display:block; margin-bottom:3px; }
+  .support-zone .name { display:block; color:#9fe0ff; font-size:12px; font-weight:700; }
+  .support-zone .desc { display:block; color:#5b7a99; font-size:10.5px; margin-top:2px; }
   .foot { text-align: center; color: #3f5a75; font-size: 11px; margin-top: 10px; line-height: 1.8; }
   .open-src { text-align: center; color: #5b7a99; font-size: 11px; margin-top: 12px;
     padding: 8px 10px; border-top: 1px solid #1a2836; line-height: 1.7; }
@@ -44,7 +49,7 @@
 </head>
 <body>
   <h1>🐳 肥鱼游戏厅</h1>
-  <div class="sub">挑个专区逛逛吧 · 慢慢加新东西</div>
+  <div class="sub">挑个专区逛逛吧 · 慢慢加新东西<br><span style="font-size:10px;opacity:.65;">本网站全部前端 · 零依赖 · 不收集任何数据</span></div>
 
   <div class="sec-title">📚 专区</div>
   <div class="grid">
@@ -95,17 +100,23 @@
       <span class="desc">文字・语言・文学・历史・写作</span>
       <span class="soon-tag">🔧 持续扩充</span>
     </a>
+    <a class="zone" href="portal/">
+      <span class="icon">🌀</span>
+      <span class="name">星界通路</span>
+      <span class="desc">检测到云顶星界坐标 · 跳跃至官方云游戏</span>
+    </a>
   </div>
 
-  <div class="more">
-    ✨ 更多专区，未来开启……<br>
-    <span style="font-size:11px">（想加啥就说，闺女给你开个口）</span>
-  </div>
+  <a class="zone support-zone" href="support/">
+    <span class="icon">🐟</span>
+    <span class="name">喂鱼计划</span>
+    <span class="desc">明说没好处，还会有人给吗（纯模拟·不收钱）</span>
+  </a>
 
   <div class="open-src">本项目已开源，详情请点击
     <a href="https://github.com/feiyu-whale/feiyu-calendar-toolkit" target="_blank" rel="noopener">GitHub 仓库</a>
   </div>
 
-  <div class="foot">🐳 大肥鱼出品 · 想加新东西就在这儿开个口<br><span style="font-size:10px;color:#22383c">v13-改理科区 20261017</span></div>
+  <div class="foot">🐳 大肥鱼出品 · 想加新东西就在这儿开个口<br><span style="font-size:10px;color:#22383c">v2.1.0-标注全前端 20261021</span></div>
 </body>
 </html>
