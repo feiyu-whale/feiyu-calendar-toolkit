@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>茶叶等级查询</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f1e8;color:#3a2e1f;font-size:14px;line-height:1.6;padding:12px}
+.container{max-width:640px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h1{font-size:20px;text-align:center;margin-bottom:16px;color:#5a4a2f}
+.subtitle{text-align:center;font-size:12px;color:#8b7355;margin-bottom:20px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
+.tab{padding:8px 14px;border:1px solid #d4c4a0;border-radius:20px;background:#faf6ed;cursor:pointer;font-size:13px;transition:all .2s;user-select:none}
+.tab.active{background:#6b8e4e;color:#fff;border-color:#6b8e4e}
+.tab:hover{background:#e8dcc0}
+.tab.active:hover{background:#5a7a3f}
+.content{border:1px solid #e8dcc0;border-radius:8px;padding:16px;background:#fdfbf5}
+.section{margin-bottom:16px}
+.section:last-child{margin-bottom:0}
+.section-title{font-size:15px;font-weight:bold;color:#5a4a2f;margin-bottom:8px;padding-bottom:4px;border-bottom:1px dashed #d4c4a0}
+.standard-list{list-style:none;padding-left:0}
+.standard-list li{padding:4px 0;font-size:13px;color:#6b5a3f}
+.standard-list li:before{content:"📋 ";margin-right:4px}
+.grade-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.grade-table th,.grade-table td{border:1px solid #d4c4a0;padding:6px 8px;text-align:left}
+.grade-table th{background:#f0e8d4;font-weight:bold;color:#5a4a2f}
+.grade-table td{background:#fdfbf5}
+.physical-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:8px}
+.physical-item{background:#f8f3e6;border:1px solid #e8dcc0;border-radius:6px;padding:10px;text-align:center}
+.physical-label{font-size:12px;color:#8b7355;margin-bottom:4px}
+.physical-value{font-size:15px;font-weight:bold;color:#5a4a2f}
+.note{font-size:12px;color:#a08060;margin-top:8px;padding:8px;background:#faf6ed;border-left:3px solid #d4c4a0;border-radius:0 4px 4px 0}
+.basis{margin-top:24px;padding:16px;background:#f8f3e6;border-radius:8px;border:1px solid #e8dcc0}
+.basis-title{font-size:14px;font-weight:bold;color:#5a4a2f;margin-bottom:8px}
+.basis-list{list-style:none;padding-left:0}
+.basis-list li{font-size:12px;color:#6b5a3f;padding:3px 0;line-height:1.5}
+.basis-list li:before{content:"📖 ";margin-right:4px}
+.version{position:fixed;bottom:8px;right:8px;font-size:10px;color:#a08060;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:4px}
+.warning{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px;margin-top:12px;font-size:12px;color:#856404}
+.warning:before{content:"⚠️ ";margin-right:4px}
+@media(max-width:480px){body{padding:8px}.container{padding:14px}h1{font-size:18px}.tab{padding:6px 10px;font-size:12px}.grade-table{font-size:12px}.grade-table th,.grade-table td{padding:4px 6px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🍵 茶叶等级查询</h1>
+<p class="subtitle">按国标查等级标准与关键指标</p>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
+<div class="basis">
+<div class="basis-title">📚 数据依据</div>
+<ul class="basis-list">
+<li>GB/T 14456.1-2017《绿茶 第1部分：基本要求》</li>
+<li>GB/T 14456.2-2018《绿茶 第2部分：大叶种绿茶》</li>
+<li>GB/T 13738.1-2017《红茶 第1部分：红碎茶》</li>
+<li>GB/T 13738.2-2017《红茶 第2部分：工夫红茶》</li>
+<li>GB/T 13738.3-2012《红茶 第3部分：小种红茶》</li>
+<li>GB/T 30357.1-2013《乌龙茶 第1部分：基本要求》</li>
+<li>GB/T 30357.2~.7-2013《乌龙茶 铁观音/黄金桂/水仙/肉桂/单丛/佛手》</li>
+<li>GB/T 32719.1-2016《黑茶 第1部分：基本要求》</li>
+<li>GB/T 32719.2~.6-2016《黑茶 花砖/茯砖/黑砖/天尖/千两茶》</li>
+<li>GB/T 22291-2017《白茶》</li>
+</ul>
+</div>
+<div class="warning">感官审评需由专业评茶员按标准方法执行，本工具仅列标准条目框架，不对具体茶叶品质做判断。完整感官描述与理化指标表值请查阅对应标准原文。</div>
+</div>
+<div class="version">v1.0.0-茶叶等级 20261021</div>
+<script>
+const teaData={green:{name:'绿茶',emoji:'🌿',standards:['GB/T 14456.1-2017 绿茶 第1部分：基本要求','GB/T 14456.2-2018 第2部分：大叶种绿茶'],grades:['特级','一级','二级','三级'],sensoryFramework:'外形、汤色、香气、滋味、叶底五项因子',sensoryDesc:{特级:'嫩度最高，外形匀整度最优',一级:'嫩度较高，外形匀整',二级:'嫩度一般，外形尚匀整',三级:'嫩度较低，外形尚匀'},physical:{moisture:'≤7.0%',ash:'≤6.5%',extract:'≥34%'},physicalNote:'具体数值需查 GB/T 14456 标准原文'},red:{name:'红茶',emoji:'🍂',standards:['GB/T 13738.1-2017 红茶 第1部分：红碎茶','GB/T 13738.2-2017 第2部分：工夫红茶','GB/T 13738.3-2012 第3部分：小种红茶'],grades:['特级','一级','二级','三级','四级'],sensoryFramework:'外形、汤色、香气、滋味、叶底五项因子',sensoryDesc:{特级:'嫩度最高，金毫显露',一级:'嫩度较高，色泽乌润',二级:'嫩度一般，色泽尚乌润',三级:'嫩度较低，色泽较乌',四级:'嫩度低，色泽乌暗'},physical:{moisture:'≤7.0%',ash:'≤6.5%',extract:'≥32%'},physicalNote:'具体数值需查 GB/T 13738 标准原文'},oolong:{name:'乌龙茶',emoji:'🍃',standards:['GB/T 30357.1-2013 乌龙茶 第1部分：基本要求','GB/T 30357.2-2013 铁观音','GB/T 30357.3-2013 黄金桂','GB/T 30357.4-2013 水仙','GB/T 30357.5-2013 肉桂','GB/T 30357.6-2013 单丛','GB/T 30357.7-2013 佛手'],grades:['特级','一级','二级','三级'],sensoryFramework:'外形、汤色、香气、滋味、叶底五项因子',sensoryDesc:{特级:'品质最优，香气高长持久',一级:'品质优良，香气清高',二级:'品质尚好，香气纯正',三级:'品质一般，香气平和'},physical:{moisture:'≤7.0%',ash:'≤6.5%',extract:'≥32%'},physicalNote:'具体数值需查 GB/T 30357 标准原文'},dark:{name:'黑茶',emoji:'🫖',standards:['GB/T 32719.1-2016 黑茶 第1部分：基本要求','GB/T 32719.2-2016 花砖','GB/T 32719.3-2016 茯砖','GB/T 32719.4-2016 黑砖','GB/T 32719.5-2016 天尖','GB/T 32719.6-2016 千两茶'],grades:['特级','一级','二级','三级'],sensoryFramework:'外形、汤色、香气、滋味、叶底五项因子',sensoryDesc:{特级:'品质最优，陈香显著',一级:'品质优良，香气纯正',二级:'品质尚好，香气平和',三级:'品质一般，香气较淡'},physical:{moisture:'≤9.0%',ash:'≤8.5%',extract:'≥28%'},physicalNote:'黑茶水分要求较其他茶类宽松，具体数值需查 GB/T 32719 标准原文'},white:{name:'白茶',emoji:'🤍',standards:['GB/T 22291-2017 白茶'],grades:['白毫银针：特级/一级','白牡丹：特级/一级/二级/三级','贡眉：特级/一级/二级/三级','寿眉：一级/二级'],sensoryFramework:'外形、汤色、香气、滋味、叶底五项因子',sensoryDesc:{特级:'毫香显露，滋味鲜醇',一级:'毫香较显，滋味醇厚',二级:'香气纯正，滋味醇和',三级:'香气平和，滋味尚醇'},physical:{moisture:'≤7.0%',ash:'≤6.5%',extract:'≥30%'},physicalNote:'具体数值需查 GB/T 22291 标准原文'}};
+let currentTea='green';
+function renderTabs(){const tabs=document.getElementById('tabs');tabs.innerHTML='';Object.keys(teaData).forEach(key=>{const tea=teaData[key];const tab=document.createElement('div');tab.className='tab'+(key===currentTea?' active':'');tab.textContent=tea.emoji+' '+tea.name;tab.onclick=()=>{currentTea=key;renderTabs();renderContent()};tabs.appendChild(tab)})}
+function renderContent(){const content=document.getElementById('content');const tea=teaData[currentTea];let html='<div class="section"><div class="section-title">📋 适用标准</div><ul class="standard-list">';tea.standards.forEach(s=>{html+='<li>'+s+'</li>'});html+='</ul></div>';html+='<div class="section"><div class="section-title">🏆 等级划分与感官要求框架</div><p style="font-size:13px;color:#6b5a3f;margin-bottom:8px">审评五项因子：'+tea.sensoryFramework+'</p><table class="grade-table"><thead><tr><th>等级</th><th>感官要求要点（框架）</th></tr></thead><tbody>';Object.keys(tea.sensoryDesc).forEach(grade=>{html+='<tr><td><strong>'+grade+'</strong></td><td>'+tea.sensoryDesc[grade]+'</td></tr>'});html+='</tbody></table><div class="note">💡 各等级完整感官描述（外形、汤色、香气、滋味、叶底的具体要求）需查阅对应标准原文。</div></div>';html+='<div class="section"><div class="section-title">🔬 关键理化指标</div><div class="physical-grid"><div class="physical-item"><div class="physical-label">水分</div><div class="physical-value">'+tea.physical.moisture+'</div></div><div class="physical-item"><div class="physical-label">总灰分</div><div class="physical-value">'+tea.physical.ash+'</div></div><div class="physical-item"><div class="physical-label">水浸出物</div><div class="physical-value">'+tea.physical.extract+'</div></div></div><div class="note">⚠️ '+tea.physicalNote+'</div></div>';content.innerHTML=html}
+renderTabs();renderContent();
+</script>
+</body>
+</html>

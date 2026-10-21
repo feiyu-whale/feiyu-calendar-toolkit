@@ -2,122 +2,52 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🔧 理科区（开发中）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔧 工具区</title>
 <style>
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
   html,body { min-height:100%; background:linear-gradient(160deg,#0a1628 0%,#123 60%,#0a1f33 100%); }
   body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#dbeafe;
-    padding:6px 6px 12px; user-select:none; display:flex; flex-direction:column; align-items:center; }
-  .back { align-self:flex-start; text-decoration:none; color:#6b8fb3; font-size:10px; margin-bottom:5px;
-    padding:2px 7px; border:1px solid #22384c; border-radius:12px; }
-  h1 { font-size:14px; color:#8fd0ff; text-align:center; font-weight:700; letter-spacing:1px; }
-  .sub { text-align:center; color:#5b7a99; font-size:10px; margin:3px 0 6px; line-height:1.4; }
-  .wip { display:inline-block; font-size:9px; color:#e0b060; border:1px solid #6b5020; background:#2a2210;
-    border-radius:6px; padding:1px 7px; margin-bottom:5px; letter-spacing:1px; }
-  .wrap { width:100%; max-width:720px; }
-  .cat { background:linear-gradient(160deg,#16304a,#0f2233); border:1px solid #2e5f8e; border-radius:7px;
-    padding:6px 7px; margin-bottom:5px; box-shadow:0 4px 18px rgba(0,0,0,.3); }
-  .cat h2 { font-size:12px; color:#9fd8ff; margin-bottom:4px; }
-  .cat .tag { font-size:9px; color:#5b7a99; margin-bottom:3px; }
-  .items { display:flex; flex-wrap:wrap; gap:3px; }
-  .item { font-size:10px; color:#a9c8e0; background:#0c1a28; border:1px solid #23405c; border-radius:4px;
-    padding:2px 5px; line-height:1.3; }
-  a.item { text-decoration:none; color:#8fe0c0; border-color:#2e6f5e; }
-  .item.soon { opacity:1; color:#6b8fb3; background:#0a141e; border:1px dashed #2a3d50; cursor:default; }
-  .item.soon::after { content:" 待做"; font-size:7px; color:#4a6785; border:1px solid #2a3d50;
-    border-radius:3px; padding:0 2px; margin-left:2px; }
-  .foot { max-width:720px; text-align:center; color:#3f5a75; font-size:9px; margin-top:6px; line-height:1.5;
-    border:1px dashed #23405c; border-radius:6px; padding:6px; }
-  .ver { text-align:center; color:#22383c; font-size:8px; margin-top:6px; }
+    padding:12px 10px 16px; display:flex; flex-direction:column; align-items:center; }
+  .back { align-self:flex-start; text-decoration:none; color:#6b8fb3; font-size:11px; margin-bottom:8px;
+    padding:3px 9px; border:1px solid #22384c; border-radius:12px; }
+  h1 { font-size:17px; color:#8fd0ff; text-align:center; font-weight:700; letter-spacing:1px; }
+  .sub { text-align:center; color:#5b7a99; font-size:11px; margin:5px 0 16px; line-height:1.6; }
+  .wrap { width:100%; max-width:520px; }
+  .zone { display:block; text-decoration:none; border-radius:12px; padding:16px 14px; margin-bottom:12px;
+    box-shadow:0 6px 24px rgba(0,0,0,.35); }
+  .zone .icon { font-size:26px; display:block; margin-bottom:6px; }
+  .zone .name { font-size:16px; font-weight:700; display:block; margin-bottom:5px; }
+  .zone .desc { font-size:11px; line-height:1.6; display:block; opacity:.8; }
+  .zone .count { font-size:11px; display:block; margin-top:8px; font-weight:600; }
+  .v { background:linear-gradient(160deg,#103a2a,#0a2419); border:1px solid #2e7a5e; color:#d0f0e0; }
+  .v .name { color:#8fe0b8; }
+  .u { background:linear-gradient(160deg,#3a2a10,#241a08); border:1px solid #8a6a2e; color:#f0e0c0; }
+  .u .name { color:#ffd080; }
+  .ver { text-align:center; color:#2c4a55; font-size:9px; margin-top:10px; }
 </style>
 </head>
 <body>
 <a class="back" href="../">← 回大厅</a>
 <div class="wrap">
-  <h1>🔧 理科区</h1>
-  <div style="text-align:center"><span class="wip">🚧 开发中 · 未来陆续上线</span></div>
-  <div class="sub">给专业活的硬核工具 · 纯前端零依赖 · 下面列的是「打算做的模块」</div>
+  <h1>🔧 工具区</h1>
+  <div class="sub">两区分开 · 自己看着办</div>
 
-  <div class="cat">
-    <h2>⚡ 电气与工控</h2>
-    <div class="tag">基础电气 / 电机拖动 / 工业通信 / 电子电路</div>
-    <div class="items">
-      <a class="item" href="ohm/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 欧姆定律·功率</a>
-      <a class="item" href="crc16/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ Modbus CRC16</a>
-      <a class="item" href="resistor/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 色环电阻</a>
-      <a class="item" href="rcrl/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ RC/RL/LC 电路</a>
-      <a class="item" href="ipcalc/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ IP/子网掩码</a>
-      <span class="item soon">三相电计算</span>
-      <span class="item soon">导线选型·载流量</span>      <span class="item soon">断路器/接触器选型</span>
-      <span class="item soon">电机扭矩·转速·功率</span>
-      <span class="item soon">星三角启动时间</span>
-      <span class="item soon">变频器参数换算</span>
-      <span class="item soon">RS485 总线负载</span>
-      <a class="item" href="divider/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 分流/分压电阻</a>
-    </div>
-  </div>
+  <a class="zone v" href="verified/">
+    <span class="icon">✅</span>
+    <span class="name">已审查工具</span>
+    <span class="desc">逐条核对过公式、系数和国标<br>拿去做工程、医疗、财务，心里有底</span>
+    <span class="count">共 72 个</span>
+  </a>
 
-  <div class="cat">
-    <h2>📐 轻量逻辑仿真</h2>
-    <div class="tag">Canvas / SVG 交互</div>
-    <div class="items">
-      <span class="item soon">梯形图逻辑模拟器</span>
-      <span class="item soon">逻辑门电路仿真</span>
-    </div>
-  </div>
+  <a class="zone u" href="unverified/">
+    <span class="icon">⚠️</span>
+    <span class="name">未审查工具</span>
+    <span class="desc">还没人工核验过，可能有算错的地方<br>参考学习可以，做决策请自己核对</span>
+    <span class="count">共 126 个</span>
+  </a>
 
-  <div class="cat">
-    <h2>🏗️ 工程力学</h2>
-    <div class="tag">结构 / 传动</div>
-    <div class="items">
-      <span class="item soon">简支梁应力计算</span>
-      <a class="item" href="gear/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 齿轮传动比</a>
-    </div>
-  </div>
-
-  <div class="cat">
-    <h2>🔊 声学与光学</h2>
-    <div class="tag">物理计算</div>
-    <div class="items">
-      <a class="item" href="db-add/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 分贝叠加</a>
-      <a class="item" href="lens/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 透镜焦距计算</a>
-    </div>
-  </div>
-
-  <div class="cat">
-    <h2>🧪 化学与材料</h2>
-    <div class="tag">物性计算</div>
-    <div class="items">
-      <a class="item" href="molar-mass/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 摩尔质量</a>
-      <span class="item soon">单位晶胞参数</span>
-    </div>
-  </div>
-
-  <div class="cat">
-    <h2>💰 财务会计</h2>
-    <div class="tag">投融资 / 折旧</div>
-    <div class="items">
-      <span class="item soon">IRR 内部收益率</span>
-      <a class="item" href="npv/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ NPV 净现值</a>
-      <a class="item" href="depreciation/" style="text-decoration:none;color:#8fe0c0;border-color:#2e6f5e">✅ 固定资产折旧</a>
-    </div>
-  </div>
-
-  <div class="cat">
-    <h2>🗂️ 高级数据</h2>
-    <div class="tag">格式互转 / 校验</div>
-    <div class="items">
-      <span class="item soon">JSON / YAML / XML 格式化互转</span>
-      <span class="item soon">CRC16 校验</span>
-    </div>
-  </div>
-
-  <div class="foot">
-    🚧 这里还在打地基——上面每一格，都是「打算做的」。<br>
-    <span style="font-size:11px">想先做哪个，跟闺女说一声，优先给你安排。</span>
-  </div>
-  <div class="ver">v4-改理科区 20261017</div>
+  <div class="ver">v3.0.0-两区分离 20261021</div>
 </div>
 </body>
 </html>

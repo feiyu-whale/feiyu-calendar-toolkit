@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✅ 已审查工具</title>
+<style>
+  html,body { background:linear-gradient(160deg,#0a2018 0%,#0d2a1f 60%,#071610 100%); }
+  body { color:#d0f0e0; }
+  .cat { background:linear-gradient(160deg,#103a2a,#0a2419); border:1px solid #2e7a5e; }
+  .cat h2 { color:#8fe0b8; }
+  a.item { color:#8fe0b8; background:#0c1a14; border:1px solid #2e6f5e; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { min-height:100%; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    padding:8px 8px 14px; display:flex; flex-direction:column; align-items:center; }
+  .back { align-self:flex-start; text-decoration:none; font-size:11px; margin-bottom:6px;
+    padding:3px 9px; border:1px solid currentColor; border-radius:12px; opacity:.6; }
+  h1 { font-size:16px; text-align:center; font-weight:700; letter-spacing:1px; }
+  .sub { text-align:center; font-size:11px; margin:4px 0 10px; line-height:1.6; opacity:.75; }
+  .wrap { width:100%; max-width:760px; }
+  .cat { border-radius:9px; padding:9px 10px; margin-bottom:8px; }
+  .cat h2 { font-size:14px; margin-bottom:3px; }
+  .cat .tag { font-size:10px; margin-bottom:7px; opacity:.65; }
+  .items { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+  .item { display:block; font-size:11px; border-radius:5px; padding:6px 5px; line-height:1.35;
+    text-decoration:none; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .foot { max-width:760px; text-align:center; font-size:10px; margin-top:8px;
+    line-height:1.6; border-radius:7px; padding:8px; opacity:.7; }
+  .ver { text-align:center; font-size:9px; margin-top:8px; opacity:.35; }
+  @media(max-width:380px){ .items{ grid-template-columns:repeat(2,1fr);} }
+  .foot { color:#5a8a75; border:1px dashed #2e5f4e; }
+</style>
+</head>
+<body>
+<a class="back" href="../">← 回工具区</a>
+<div class="wrap">
+  <h1>✅ 已审查工具</h1>
+  <div class="sub">这些是<b>逐条核对过</b>的：公式、系数、国标一致性都查过<br>
+    可以放心用来算真东西</div>
+  <div class="cat">
+    <h2>✅ 通过审查</h2>
+    <div class="tag">共 7 个 · 数据依据在各工具页内</div>
+    <div class="items">
+      <a class="item" href="rebar/">钢筋理论重量计算工具 v2.0.0</a>
+      <a class="item" href="metal-density/">金属材料密度与重量计算工具</a>
+      <a class="item" href="molar-mass/">摩尔质量计算工具</a>
+      <a class="item" href="lens/">透镜焦距计算工具</a>
+      <a class="item" href="coupling/">联轴器选型工具 v2.0.0</a>
+      <a class="item" href="crop-planting/">作物播种时间与株距计算器</a>
+      <a class="item" href="dou-sheng/">斗升石换算工具</a>
+    </div>
+  </div>
+  <div class="foot">审查方式：逐份读源码 + 核对公式 + 抽查国标数值<br>
+    发现问题会标注在工具页内</div>
+  <div class="ver">v1.0.0-已审查区 20261021</div>
+</div>
+</body>
+</html>
