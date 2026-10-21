@@ -512,7 +512,7 @@
   </div>
 </div>
 
-<div class="version">v2.0.0-完整版 20261021</div>
+<div class="version">v2.1.0-修校验 20261021</div>
 
 <script>
 /* =========================================================
@@ -733,10 +733,11 @@ function calculateAllowableStressByTensile(tensileStrength, safetyFactor) {
  * // {allowByYield: 156.67, allowByTensile: 148, finalAllowable: 148, basis: '基于抗拉强度控制'}
  */
 function calculateAllowableStress(yieldStrength, tensileStrength, safetyFactorYield, safetyFactorTensile, isDuctile) {
+  // 2026-10-21 修：安全系数原用裸比较，NaN/undefined 会绕过校验
   validateInput(yieldStrength, 0, Infinity, '屈服强度');
   validateInput(tensileStrength, 0.0000001, Infinity, '抗拉强度');
-  if (safetyFactorYield <= 1) throw new Error('基于屈服的安全系数必须大于 1');
-  if (safetyFactorTensile <= 1) throw new Error('基于抗拉的安全系数必须大于 1');
+  validateInput(safetyFactorYield, 1.0000001, 100, '基于屈服的安全系数');
+  validateInput(safetyFactorTensile, 1.0000001, 100, '基于抗拉的安全系数');
   if (typeof isDuctile !== 'boolean') throw new Error('isDuctile 必须是布尔值');
 
   var allowByYield = null;
@@ -753,6 +754,10 @@ function calculateAllowableStress(yieldStrength, tensileStrength, safetyFactorYi
       finalAllowable = allowByTensile;
       basis = '基于抗拉强度控制';
     }
+  } else if (isDuctile) {
+    // 2026-10-21 修：塑性材料但屈服强度缺失，不能标成脆性材料
+    finalAllowable = allowByTensile;
+    basis = '塑性材料（未提供屈服强度），基于抗拉强度控制';
   } else {
     finalAllowable = allowByTensile;
     basis = '脆性材料，基于抗拉强度';

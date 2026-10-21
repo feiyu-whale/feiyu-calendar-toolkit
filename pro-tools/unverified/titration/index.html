@@ -332,7 +332,7 @@ h1 { text-align: center; color: #1a3a5c; margin-bottom: 5px; font-size: 1.8em; }
 
 </div>
 
-<div class="version-tag">v2.0.0-专业版 20261021</div>
+<div class="version-tag">v2.1.0-修边界校验 20261021</div>
 
 <script>
 /**
@@ -397,6 +397,8 @@ function switchTab(idx) {
  * @returns {number} pH 值
  */
 function calcStrongAcidStrongBase(Ca, Va, Cb, Vb) {
+  // 2026-10-21 修：Cb<=0 会除零得 Infinity，直接兜底
+  if (!(Cb > 0) || !isFinite(Cb) || !(Ca > 0) || !isFinite(Ca)) return 7.0;
   var nAcid = Ca * Va;   // mmol
   var nBase = Cb * Vb;   // mmol
   var Vtotal = Va + Vb;  // mL
@@ -511,6 +513,15 @@ function calcWeakAcidStrongBase(Ca, Va, Cb, Ka, Vb) {
  * @returns {Object} { points: [{Vb, pH, stage}], Ve, pH_eq, pH_initial }
  */
 function generateTitrationCurve(acidType, Ca, Va, Cb, Ka, numSteps) {
+  // ── 输入边界校验（2026-10-21 修：防止除零/NaN/Infinity） ──
+  if (!(Ca > 0) || !isFinite(Ca)) return { points: [], Ve: NaN, pH_eq: NaN, pH_initial: NaN, error: '酸浓度必须大于 0' };
+  if (!(Va > 0) || !isFinite(Va)) return { points: [], Ve: NaN, pH_eq: NaN, pH_initial: NaN, error: '酸体积必须大于 0' };
+  if (!(Cb > 0) || !isFinite(Cb)) return { points: [], Ve: NaN, pH_eq: NaN, pH_initial: NaN, error: '碱浓度必须大于 0' };
+  if (acidType === 'weak' && (!(Ka > 0) || !isFinite(Ka))) {
+    return { points: [], Ve: NaN, pH_eq: NaN, pH_initial: NaN, error: '弱酸 Ka 必须大于 0' };
+  }
+  if (!(numSteps >= 2) || !isFinite(numSteps)) numSteps = 200;
+
   var Ve = (Ca * Va) / Cb;
   // 滴定范围：0 到 2*Ve（或至少到 Va 的 2 倍）
   var Vmax = Math.max(2 * Ve, Va * 0.5);
@@ -562,12 +573,13 @@ function generateTitrationCurve(acidType, Ca, Va, Cb, Ka, numSteps) {
     if (isNaN(pH)) pH = 7;
 
     // 判断阶段
+    // 2026-10-21 修：原顺序导致「等当点」分支永不执行，改为先判等当点
     var stage;
     var ratio = vb / Ve;
-    if (ratio < 0.001) stage = '起始';
+    if (Math.abs(ratio - 1) < 0.001) stage = '等当点';
+    else if (ratio < 0.001) stage = '起始';
     else if (ratio < 0.99) stage = '等当点前';
     else if (ratio < 1.01) stage = '等当点附近';
-    else if (Math.abs(ratio - 1) < 0.001) stage = '等当点';
     else stage = '等当点后';
 
     points.push({ Vb: vb, pH: pH, stage: stage });

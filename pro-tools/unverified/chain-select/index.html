@@ -303,7 +303,7 @@ v = z₁ × n₁ × p / 60000 (m/s)
 </div>
 </section>
 
-<footer class="version">v2.0.0-完整版 20261021</footer>
+<footer class="version">v2.1.0-修校验·数据待核 20261021</footer>
 
 <script>
 // ============================================================
@@ -354,7 +354,8 @@ function getChainData(chainNo) {
  */
 function calcPitchDiameter(pitch, teeth) {
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
-  if (!Number.isFinite(teeth) || teeth < 3) return NaN;
+  // 2026-10-21 修：齿数须为整数且 >= 9（与函数注释一致；<9 齿多边形效应过大）
+  if (!Number.isInteger(teeth) || teeth < 9) return NaN;
   return pitch / Math.sin(Math.PI / teeth);
 }
 
@@ -435,6 +436,10 @@ function calcCenterDistance(chainLength, pitch, z1, z2) {
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
   if (!Number.isFinite(z1) || z1 < 3) return NaN;
   if (!Number.isFinite(z2) || z2 < 3) return NaN;
+  // 2026-10-21 修：链节数必须为偶数（滚子链闭合要求），且须大于两轮齿数之和的一半
+  if (Math.round(chainLength) !== chainLength) return NaN;
+  if (chainLength % 2 !== 0) return NaN;
+  if (chainLength <= (z1 + z2) / 2) return NaN;
   const A = chainLength - (z1 + z2) / 2;
   const B = Math.pow((z2 - z1) / (2 * Math.PI), 2);
   const discriminant = A * A - 8 * B;
@@ -512,6 +517,8 @@ function calcRatio(z1, z2) {
 function calcWrapAngle(z1, z2, centerDist, pitch) {
   if (!Number.isFinite(z1) || z1 < 3) return NaN;
   if (!Number.isFinite(z2) || z2 < 3) return NaN;
+  // 2026-10-21 修：小链轮必须填在 z1；否则算出的"包角"会大于 180°，不是小轮包角
+  if (z1 > z2) return NaN;
   if (!Number.isFinite(centerDist) || centerDist <= 0) return NaN;
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
   const d1 = calcPitchDiameter(pitch, z1);
@@ -717,7 +724,8 @@ function getChainData(chainNo) {
  */
 function calcPitchDiameter(pitch, teeth) {
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
-  if (!Number.isFinite(teeth) || teeth < 3) return NaN;
+  // 2026-10-21 修：齿数须为整数且 >= 9（与函数注释一致；<9 齿多边形效应过大）
+  if (!Number.isInteger(teeth) || teeth < 9) return NaN;
   return pitch / Math.sin(Math.PI / teeth);
 }
 
@@ -797,6 +805,10 @@ function calcCenterDistance(chainLength, pitch, z1, z2) {
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
   if (!Number.isFinite(z1) || z1 < 3) return NaN;
   if (!Number.isFinite(z2) || z2 < 3) return NaN;
+  // 2026-10-21 修：链节数必须为偶数（滚子链闭合要求），且须大于两轮齿数之和的一半
+  if (Math.round(chainLength) !== chainLength) return NaN;
+  if (chainLength % 2 !== 0) return NaN;
+  if (chainLength <= (z1 + z2) / 2) return NaN;
   const A = chainLength - (z1 + z2) / 2;
   const B = Math.pow((z2 - z1) / (2 * Math.PI), 2);
   const discriminant = A * A - 8 * B;
@@ -863,6 +875,8 @@ function calcRatio(z1, z2) {
 function calcWrapAngle(z1, z2, centerDist, pitch) {
   if (!Number.isFinite(z1) || z1 < 3) return NaN;
   if (!Number.isFinite(z2) || z2 < 3) return NaN;
+  // 2026-10-21 修：小链轮必须填在 z1；否则算出的"包角"会大于 180°，不是小轮包角
+  if (z1 > z2) return NaN;
   if (!Number.isFinite(centerDist) || centerDist <= 0) return NaN;
   if (!Number.isFinite(pitch) || pitch <= 0) return NaN;
   const d1 = calcPitchDiameter(pitch, z1);
