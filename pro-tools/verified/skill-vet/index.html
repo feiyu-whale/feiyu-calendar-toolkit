@@ -111,6 +111,8 @@ textarea:focus { outline: none; border-color: #3d6a96; }
     </div>
     <div class="btnrow">
       <button class="btn" id="scanBtn" onclick="scanAll()" style="display:none">🔍 开始安检</button>
+      <button class="btn" id="fullBtn" onclick="runFullScan()" style="display:none">⚡ 全量扫描（静态 + 动态）</button>
+      <span id="fullStatus" style="font-size:12px;color:#7d8b99;align-self:center"></span>
     </div>
   </div>
 
@@ -149,7 +151,7 @@ textarea:focus { outline: none; border-color: #3d6a96; }
     <div id="deepResult" style="margin-top:16px"></div>
   </div>
 </div>
-<div class="version">v1.5.0-深度扫描修eval遮蔽 20261022</div>
+<div class="version">v1.6.1-修可疑域名误报 20261022</div>
 
 <script>
 /* ============================================================
@@ -387,13 +389,19 @@ document.getElementById('dirInput').addEventListener('change', async e => {
 
 function afterLoad() {
   const box = document.getElementById('filelist');
-  if (!pendingFiles.length) { box.innerHTML = ''; document.getElementById('scanBtn').style.display = 'none'; return; }
+  if (!pendingFiles.length) {
+    box.innerHTML = '';
+    document.getElementById('scanBtn').style.display = 'none';
+    document.getElementById('fullBtn').style.display = 'none';
+    return;
+  }
   const shown = pendingFiles.slice(0, 60);
   box.innerHTML = shown.map(f =>
     '<div class="fi"><span>' + escapeHtml(f.name) + (f.err ? ' <b style="color:#e07a7a">(' + escapeHtml(f.err) + ')</b>' : '') + '</span>' +
     '<span class="sz">' + (f.size != null ? (f.size / 1024).toFixed(1) + ' KB' : '') + '</span></div>'
   ).join('') + (pendingFiles.length > 60 ? '<div class="fi"><span>… 还有 ' + (pendingFiles.length - 60) + ' 个文件</span></div>' : '');
   document.getElementById('scanBtn').style.display = 'inline-block';
+  document.getElementById('fullBtn').style.display = 'inline-block';
 }
 
 function escapeHtml(s) {
@@ -505,14 +513,25 @@ function scanAll() {
       }
     }
     // 敏感域名关键词（哪怕不是完整 URL）
-    const badHostRe = /(evil|malicious|exfil|steal|collect[-.]|upload[-.]|pastebin\.com|transfer\.sh|ngrok\.io|webhook\.site)/gi;
+    // 敏感域名关键词——必须出现在 URL/域名里才算，普通句子里提到不算
+    // 且同一行只记一次，避免重复刷屏
+    const domainRe = /https?:\/\/([\w.\-]+)/g;
+    const seenLines = new Set();
     let b;
-    while ((b = badHostRe.exec(f.content)) !== null) {
-      const ctx = f.content.slice(Math.max(0, b.index - 40), b.index + 60);
+    while ((b = domainRe.exec(f.content)) !== null) {
+      const host = b[1];
+      const lineNo = f.content.slice(0, b.index).split('\n').length;
+      const key = f.name + ':' + lineNo;
+      if (seenLines.has(key)) continue;
+      const bad = /(^|[.\-])(evil|malicious|exfil|steal|collect|upload|pastebin|transfer|ngrok|webhook)/i.test(host)
+               || /(evil|exfil|steal|collect|webhook|pastebin|ngrok|transfer\.sh)/i.test(host);
+      if (!bad) continue;
+      const lineText = (f.content.split('\n')[lineNo - 1] || '').trim().slice(0, 160);
+      seenLines.add(key);
       findings.push({
-        rule: { id: 'bad-host', sev: 'critical', name: '出现可疑域名关键词',
-          desc: '匹配到常见的收数据/外传服务特征词' },
-        file: f.name, hits: [{ idx: 0, text: ctx.replace(/\s+/g, ' ') }], total: 1
+        rule: { id: 'bad-host', sev: 'critical', name: '可疑域名（在真实 URL 里）',
+          desc: 'URL 的域名中出现常见的收数据/外传服务特征词' },
+        file: f.name, hits: [{ idx: lineNo, text: '域名 ' + host + '  ← ' + lineText }], total: 1
       });
     }
     // 收集敏感路径
@@ -530,7 +549,87 @@ function scanAll() {
  * ============================================================ */
 const DEEP_TIMEOUT = 3000;
 
-function runDeepScan() {
+/* ===== 全量扫描：静态 + 动态一次跑完 ===== */
+function runFullScan() {
+  if (!pendingFiles.length) return;
+  const fbtn = document.getElementById('fullBtn');
+  const fstatus = document.getElementById('fullStatus');
+  fbtn.disabled = true;
+  fstatus.textContent = '① 静态扫描中…';
+
+  // ① 先跑静态（同步）
+  scanAll();
+
+  // ② 再跑动态
+  const jsFiles = pendingFiles.filter(f =>
+    f.content && /\.(js|mjs|cjs)$/i.test(f.name) && f.content.length < 2 * 1024 * 1024
+  );
+  if (!jsFiles.length) {
+    fstatus.textContent = '① 静态扫描完成｜② 无 JS 可动态执行（Python/Shell 仅静态）';
+    fbtn.disabled = false;
+    renderCombined();
+    return;
+  }
+
+  fstatus.textContent = '② 动态模拟中（' + jsFiles.length + ' 个 JS，最长 ' + (jsFiles.length * 3) + ' 秒）…';
+  runDeepScan(function () {   // 回调：动态完成后合成总报告
+    fstatus.textContent = '✓ 静态 + 动态全部完成';
+    fbtn.disabled = false;
+    renderCombined();
+  });
+}
+
+/* 把静态结论和动态行为合成一张总报告 */
+function renderCombined() {
+  const vEl = document.getElementById('verdictBox');
+  const nEl = document.getElementById('noteBox');
+  if (!vEl) return;
+  const staticTxt = vEl.textContent || '';
+  const deepTxt = (document.getElementById('deepResult') || {}).textContent || '';
+
+  const staticBlock = /拒绝安装/.test(staticTxt);
+  const staticHigh = /高风险/.test(staticTxt);
+  const staticMid = /中等风险/.test(staticTxt);
+
+  const mNet = deepTxt.match(/网络请求[\s\S]{0,40}?(\d+)/);
+  const mExec = deepTxt.match(/动态执行[\s\S]{0,40}?(\d+)/);
+  const mSto = deepTxt.match(/凭据\/存储访问[\s\S]{0,40}?(\d+)/);
+  const netN = mNet ? parseInt(mNet[1], 10) : 0;
+  const execN = mExec ? parseInt(mExec[1], 10) : 0;
+  const stoN = mSto ? parseInt(mSto[1], 10) : 0;
+  const deepDirty = (netN + execN + stoN) > 0;
+
+  let cls, txt;
+  if (staticBlock || netN > 0 || stoN > 0) {
+    cls = 'v-block';
+    txt = '<span style="font-size:26px">⛔</span><span>全量扫描结论：<b>拒绝安装</b>'
+      + (staticBlock ? '｜静态：命中立即拒绝级特征' : '')
+      + (netN ? '｜动态：有网络请求 ' + netN + ' 次' : '')
+      + (stoN ? '｜动态：有凭据访问 ' + stoN + ' 次' : '') + '</span>';
+  } else if (staticHigh || deepDirty) {
+    cls = 'v-danger';
+    txt = '<span style="font-size:26px">🔴</span><span>全量扫描结论：<b>高风险</b>'
+      + (staticHigh ? '｜静态：命中高危特征' : '')
+      + (execN ? '｜动态：有动态执行 ' + execN + ' 次' : '') + '</span>';
+  } else if (staticMid) {
+    cls = 'v-warn';
+    txt = '<span style="font-size:26px">🟡</span><span>全量扫描结论：<b>中等风险</b>｜静态命中中危特征，需看过再装</span>';
+  } else {
+    cls = 'v-safe';
+    txt = '<span style="font-size:26px">🟢</span><span>全量扫描结论：<b>两层都没发现已知可疑特征</b>（仍需人读代码）</span>';
+  }
+
+  vEl.className = 'verdict ' + cls;
+  vEl.innerHTML = txt;
+
+  if (nEl) {
+    nEl.innerHTML = '<div class="note">全量扫描 = 静态（特征匹配）+ 动态（Worker 隔离执行）。'
+      + '静态看「长得像什么」，动态看「真跑起来干了什么」。两层都过才敢装。</div>';
+  }
+  vEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function runDeepScan(onDone) {
   const resBox = document.getElementById('deepResult');
   const status = document.getElementById('deepStatus');
   const btn = document.getElementById('deepBtn');
@@ -546,6 +645,7 @@ function runDeepScan() {
   }
   if (!jsFiles.length) {
     resBox.innerHTML = '<div class="note">⚠️ 没有可执行的 JS 文件可跑。深度扫描只能跑 <code>.js/.mjs/.cjs</code>；Python / Shell 请用上面的静态扫描。</div>';
+    if (typeof onDone === 'function') onDone([]);
     return;
   }
 
@@ -558,7 +658,7 @@ function runDeepScan() {
 
   jsFiles.forEach((f, idx) => {
     let finished = false;
-    const finish = () => { if (finished) return; finished = true; done++; if (done === jsFiles.length) renderDeep(events, jsFiles.length); };
+    const finish = () => { if (finished) return; finished = true; done++; if (done === jsFiles.length) { renderDeep(events, jsFiles.length); if (typeof onDone === 'function') onDone(events); } };
 
     let worker;
     try {
