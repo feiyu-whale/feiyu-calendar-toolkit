@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技能安检 · Skill Vetter</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #0f1419; color: #d6dee6; line-height: 1.65; padding: 24px 20px 60px;
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+h1 { font-size: 24px; color: #e8f0f7; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #7d8b99; margin-bottom: 20px; }
+.card { background: #161c24; border: 1px solid #243040; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+.card h2 { font-size: 15px; color: #8fb8d8; margin-bottom: 12px; font-weight: 600; }
+#drop {
+  border: 2px dashed #2f4256; border-radius: 12px; padding: 42px 20px; text-align: center;
+  cursor: pointer; transition: all .2s; background: #121820;
+}
+#drop:hover, #drop.over { border-color: #4a90c4; background: #152030; }
+#drop .big { font-size: 34px; margin-bottom: 10px; }
+#drop .t { font-size: 15px; color: #a8bccd; margin-bottom: 6px; }
+#drop .s { font-size: 12px; color: #6a7a88; }
+#fileInput, #dirInput { display: none; }
+.btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.btn {
+  background: #2563a8; color: #fff; border: none; padding: 9px 20px; border-radius: 7px;
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.btn:hover { background: #1e4f87; }
+.btn.ghost { background: #1e2a38; border: 1px solid #2f4256; }
+.btn.ghost:hover { background: #263547; }
+#filelist { margin-top: 16px; font-size: 13px; }
+#filelist .fi { padding: 5px 10px; background: #121820; border-radius: 5px; margin-bottom: 4px; color: #8fa8bd; display: flex; justify-content: space-between; }
+#filelist .fi .sz { color: #5a6b7a; }
+textarea {
+  width: 100%; min-height: 220px; padding: 14px; background: #0d1218; color: #cfdce8;
+  border: 1px solid #243040; border-radius: 8px; font-family: "Consolas", "Monaco", monospace;
+  font-size: 13px; line-height: 1.6; resize: vertical;
+}
+textarea:focus { outline: none; border-color: #3d6a96; }
+.report { display: none; }
+.report.show { display: block; }
+.verdict {
+  padding: 18px 22px; border-radius: 10px; margin-bottom: 16px; font-size: 17px; font-weight: 700;
+  display: flex; align-items: center; gap: 12px;
+}
+.v-safe { background: #12301f; border-left: 4px solid #2ecc71; color: #7ee0a8; }
+.v-warn { background: #332a12; border-left: 4px solid #f0a030; color: #f5c76a; }
+.v-danger { background: #331514; border-left: 4px solid #e05050; color: #f08a8a; }
+.v-block { background: #2a0d0d; border-left: 4px solid #ff3b3b; color: #ff8a8a; }
+.risk-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.chip {
+  padding: 5px 14px; border-radius: 20px; font-size: 12px; background: #1a232e; color: #8fa8bd;
+  border: 1px solid #243040;
+}
+.chip.on-critical { background: #3a1212; color: #ff8a8a; border-color: #6a2020; }
+.chip.on-high { background: #3a2512; color: #f5b96a; border-color: #6a4520; }
+.chip.on-mid { background: #33301a; color: #e8d47a; border-color: #5a5a30; }
+.chip.on-low { background: #12261e; color: #7ee0a8; border-color: #20503a; }
+.finding { background: #121820; border-left: 3px solid #3a4a5a; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; }
+.finding.critical { border-left-color: #ff3b3b; background: #1e1212; }
+.finding.high { border-left-color: #f0a030; background: #1e1a12; }
+.finding.mid { border-left-color: #d4c050; background: #1c1c12; }
+.finding .fh { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.finding .fname { font-weight: 600; color: #d6dee6; }
+.finding .fscore { font-size: 11px; padding: 1px 8px; border-radius: 10px; }
+.finding .fs-critical { background: #6a2020; color: #ff9a9a; }
+.finding .fs-high { background: #6a4520; color: #ffc07a; }
+.finding .fs-mid { background: #5a5a30; color: #e8e08a; }
+.finding .fdesc { color: #8fa8bd; font-size: 12px; }
+.finding .fline { color: #c88; font-family: monospace; font-size: 11px; margin-top: 5px; word-break: break-all; background: #0a0e12; padding: 5px 8px; border-radius: 4px; }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.sg { background: #121820; border-radius: 8px; padding: 12px 14px; }
+.sg .k { font-size: 11px; color: #6a7a88; margin-bottom: 4px; }
+.sg .v { font-size: 19px; font-weight: 700; color: #a8c8e0; }
+.sg .v.red { color: #f08a8a; }
+.sg .v.orange { color: #f5b96a; }
+.sg .v.green { color: #7ee0a8; }
+.perm { font-size: 12px; color: #8fa8bd; margin-bottom: 6px; }
+.perm b { color: #b8c8d8; }
+.footnote { font-size: 11px; color: #5a6a78; margin-top: 14px; line-height: 1.8; }
+.version { position: fixed; bottom: 10px; right: 14px; font-size: 11px; color: #4a5a68; }
+.note { background: #1a2018; border-left: 3px solid #4a7a4a; padding: 10px 14px; border-radius: 5px; font-size: 12px; color: #8fb88f; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔒 技能安检 · Skill Vetter</h1>
+  <p class="sub">装任何外部技能之前，先把它过一遍闸。全部在本地跑，不上传、不联网。</p>
+
+  <div class="card">
+    <h2>① 丢进来（ZIP 压缩包 / 整个文件夹 / 粘贴代码）</h2>
+    <div id="drop">
+      <div class="big">📦</div>
+      <div class="t">把 ZIP 压缩包拖到这里</div>
+      <div class="s">或者点下面按钮选择压缩包 / 文件夹</div>
+    </div>
+    <div class="btnrow">
+      <button class="btn" onclick="document.getElementById('fileInput').click()">选择一个或多个 ZIP</button>
+      <button class="btn ghost" onclick="document.getElementById('dirInput').click()">选择文件夹</button>
+      <button class="btn ghost" onclick="togglePaste()">直接粘贴代码</button>
+    </div>
+    <input type="file" id="fileInput" accept=".zip" multiple>
+    <input type="file" id="dirInput" webkitdirectory directory multiple>
+    <div id="filelist"></div>
+    <div id="pasteBox" style="display:none;margin-top:14px">
+      <textarea id="pasteArea" placeholder="把要审查的代码粘到这里……"></textarea>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="scanBtn" onclick="scanAll()" style="display:none">🔍 开始安检</button>
+    </div>
+  </div>
+
+  <div class="card report" id="reportBox">
+    <h2>② 安检报告</h2>
+    <div id="verdictBox" class="verdict"></div>
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div class="risk-row" id="riskRow"></div>
+    <div id="permBox" style="margin-bottom:14px"></div>
+    <div id="findingsBox"></div>
+    <div id="noteBox"></div>
+    <div class="footnote">
+      判定依据：🚨 命中「立即拒绝」类特征（外传数据 / 读密钥 / eval 外部输入 / 混淆代码 / 提权）→ 直接阻断；<br>
+      ⚠️ 命中高危（网络请求、装包、写系统文件、读记忆文件）→ 人工复核；<br>
+      本工具是「静态扫描」，只认特征模式，<b>代码到底想干什么要靠人读</b>。扫描通过 ≠ 一定安全。
+    </div>
+  </div>
+</div>
+<div class="version">v1.0.0-技能安检 20261022</div>
+
+<script>
+/* ============================================================
+ *  第一部分：ZIP 解压（纯原生实现，不依赖任何外部库）
+ *  原理：读文件末尾的中央目录(EOCD) → 遍历条目 → DecompressionStream 解压
+ * ============================================================ */
+async function unzipEntries(file) {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const dv = new DataView(buf.buffer);
+  // 1) 从末尾往前找 EOCD 签名 0x06054b50
+  let eocd = -1;
+  const minPos = Math.max(0, buf.length - 65558);
+  for (let i = buf.length - 22; i >= minPos; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('不是有效的 ZIP 文件（找不到中央目录）');
+  const total  = dv.getUint16(eocd + 10, true);
+  let cdOff    = dv.getUint32(eocd + 16, true);
+  const dec    = new TextDecoder('utf-8');
+  const out    = [];
+  // 2) 遍历中央目录
+  for (let i = 0; i < total; i++) {
+    if (cdOff + 46 > buf.length) break;
+    if (dv.getUint32(cdOff, true) !== 0x02014b50) break;
+    const method = dv.getUint16(cdOff + 10, true);
+    const csize  = dv.getUint32(cdOff + 20, true);
+    const usize  = dv.getUint32(cdOff + 24, true);
+    const nlen   = dv.getUint16(cdOff + 28, true);
+    const elen   = dv.getUint16(cdOff + 30, true);
+    const clen   = dv.getUint16(cdOff + 32, true);
+    const lho    = dv.getUint32(cdOff + 42, true);
+    const name   = dec.decode(buf.subarray(cdOff + 46, cdOff + 46 + nlen));
+    cdOff += 46 + nlen + elen + clen;
+    if (name.endsWith('/')) continue;
+    // 3) 定位本地头，取数据区
+    if (lho + 30 > buf.length || dv.getUint32(lho, true) !== 0x04034b50) {
+      out.push({ name, content: null, err: '本地文件头损坏' });
+      continue;
+    }
+    const lnlen = dv.getUint16(lho + 26, true);
+    const lelen = dv.getUint16(lho + 28, true);
+    const ds    = lho + 30 + lnlen + lelen;
+    const raw   = buf.subarray(ds, ds + csize);
+    let content = null, err = null;
+    try {
+      if (method === 0) {
+        content = dec.decode(raw);
+      } else if (method === 8) {
+        const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        content = dec.decode(new Uint8Array(await new Response(stream).arrayBuffer()));
+      } else {
+        err = '不支持的压缩方式(' + method + ')';
+      }
+    } catch (e) { err = e.message; }
+    out.push({ name, content, err, size: usize });
+  }
+  return out;
+}
+
+/* ============================================================
+ *  第二部分：危险特征规则库
+ *  来源：skill-vetter SKILL.md 的四步协议，转成可执行特征
+ * ============================================================ */
+const RULES = [
+  // ---- 立即拒绝（critical）----
+  { id:'exfil-curl', sev:'critical', name:'curl/wget 向外部地址发数据',
+    re:/(curl|wget)\s+[^\n]{0,120}(-d\s|--data|-F\s|--upload-file|>\s*\/dev\/tcp)/i,
+    desc:'把数据 POST 出去，典型的外传手法' },
+  { id:'ssh-read', sev:'critical', name:'读取 SSH 密钥',
+    re:/(~\/\.ssh|\.ssh\/id_rsa|\.ssh\/id_ed25519|\/\.ssh\/)/i,
+    desc:'访问用户 SSH 私钥目录' },
+  { id:'aws-cred', sev:'critical', name:'读取云厂商凭证',
+    re:/(~\/\.aws|~\/\.config\/gcloud|\.aws\/credentials|\.kube\/config)/i,
+    desc:'访问云凭证/集群凭证' },
+  { id:'mem-touch', sev:'critical', name:'访问人格/记忆文件',
+    re:/(MEMORY\.md|SOUL\.md|IDENTITY\.md|USER\.md|AGENTS\.md)/,
+    desc:'触碰 AI 的长期记忆或人格文件，属高敏感目标' },
+  { id:'eval-exec', sev:'critical', name:'eval/exec 执行外部输入',
+    re:/\b(eval|exec)\s*\(\s*(?!['"`])/,
+    desc:'把非字面量交给 eval/exec，可被注入任意代码' },
+  { id:'b64-decode', sev:'critical', name:'base64 解码后执行',
+    re:/(base64\s+-d|atob\s*\(|Buffer\.from\([^)]*base64)/i,
+    desc:'先解码再执行/写盘，典型的隐藏载荷手法（需人工确认用途）' },
+  { id:'ip-url', sev:'high', name:'直连 IP 而非域名',
+    re:/(https?:\/\/)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/,
+    desc:'直接用 IP 通信，绕过域名溯源' },
+  { id:'sudo', sev:'critical', name:'请求提权',
+    re:/\b(sudo\s+|chmod\s+[0-7]*7[0-7]*\s+|chown\s+root)/,
+    desc:'提权或改高权限文件权限' },
+  { id:'sys-write', sev:'high', name:'写系统目录',
+    re:/(>|>>|write)\s*['"`]?\/(etc|usr|bin|sbin|boot|var\/lib)\//,
+    desc:'向系统目录写文件' },
+
+  // ---- 高危（high）----
+  { id:'net-out', sev:'high', name:'向外部服务器发数据',
+    re:/(fetch|axios|requests\.(get|post)|http\.request|https\.request|XMLHttpRequest|net\.connect)/,
+    desc:'存在网络请求，需确认目的地与发送内容' },
+  { id:'net-unknown', sev:'high', name:'curl/wget 任意地址',
+    re:/(curl|wget)\s+(-[a-zA-Z]+\s+)*https?:\/\//i,
+    desc:'存在命令行网络请求，需确认目的地' },
+  { id:'pkg-install', sev:'high', name:'安装依赖但未声明',
+    re:/\b(npm\s+(install|i)\s|pip\s+install|yarn\s+add|apt(-get)?\s+install|gem\s+install)/,
+    desc:'运行时装包，供应链风险' },
+  { id:'cookie', sev:'high', name:'访问浏览器 Cookie/会话',
+    re:/(document\.cookie|localStorage\.getItem|sessionStorage\.getItem)/,
+    desc:'读取浏览器会话数据' },
+  { id:'cred-ask', sev:'high', name:'索取凭证/密钥',
+    re:/(API[_-]?KEY|SECRET[_-]?KEY|ACCESS[_-]?TOKEN|PASSWORD|PRIVATE[_-]?KEY)/i,
+    desc:'代码里出现凭证类变量名，需确认用途' },
+  { id:'lead', sev:'mid', name:'环境变量批量读取',
+    re:/(process\.env\b|os\.environ)/,
+    desc:'读取环境变量，可能带出密钥' },
+  { id:'obfusc', sev:'high', name:'代码混淆/压缩',
+    re:/(eval\(function\(p,a,c,k,e|\\x[0-9a-f]{2}\\x[0-9a-f]{2}\\x[0-9a-f]{2})/i,
+    desc:'可执行内容被编码混淆' },
+  { id:'cmd-pipe', sev:'high', name:'管道执行远程脚本',
+    re:/(curl|wget)[^\n|]{0,160}\|\s*(ba)?sh/i,
+    desc:'下载即执行，最危险的安装方式' },
+
+  // ---- 中危（mid）----
+  { id:'fs-write', sev:'mid', name:'写工作区外文件',
+    re:/(fs\.writeFile|open\([^)]*['"`]w['"`]|writeFileSync|>\s*\S+\.(sh|js|py))/,
+    desc:'有写文件动作，需确认路径范围' },
+  { id:'child-proc', sev:'mid', name:'启动子进程',
+    re:/(child_process|subprocess\.|os\.system|execSync|spawn\()/,
+    desc:'会执行系统命令' },
+  { id:'crypto-key', sev:'mid', name:'加密/密钥处理',
+    re:/(createCipheriv|createDecipheriv|openssl\s+enc|gpg\s+--)/i,
+    desc:'涉及加解密' },
+  { id:'remote-import', sev:'mid', name:'远程加载代码',
+    re:/(import\s*\(['"`]https?:|<script[^>]+src=['"]https?:)/i,
+    desc:'从网络加载可执行代码' },
+];
+
+// 文本文件判定（只扫这些，二进制跳过）
+const TEXT_EXT = /\.(md|markdown|txt|js|mjs|cjs|ts|jsx|tsx|py|sh|bash|zsh|json|ya?ml|toml|ini|cfg|conf|html|htm|css|xml|rb|go|rs|java|c|h|cpp|hpp|php|pl|lua|sql|env|gitignore|dockerfile)$/i;
+function isTextFile(name) {
+  if (TEXT_EXT.test(name)) return true;
+  const base = (name.split('/').pop() || '').toLowerCase();
+  return ['dockerfile', 'makefile', 'readme', 'license', 'skill.md'].includes(base) || !name.includes('.');
+}
+
+/* ============================================================
+ *  第三部分：扫描与评级
+ * ============================================================ */
+let pendingFiles = [];   // [{name, content, err, size}]
+
+function togglePaste() {
+  const box = document.getElementById('pasteBox');
+  const ta  = document.getElementById('pasteArea');
+  const show = box.style.display === 'none';
+  box.style.display = show ? 'block' : 'none';
+  if (show) {
+    pendingFiles = [{ name: '(粘贴的代码)', content: ta.value, size: ta.value.length }];
+    ta.oninput = () => { pendingFiles = [{ name: '(粘贴的代码)', content: ta.value, size: ta.value.length }]; };
+    document.getElementById('scanBtn').style.display = 'inline-block';
+  }
+}
+
+const drop = document.getElementById('drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', async e => {
+  const items = e.dataTransfer.items;
+  const collected = [];
+  if (items && items.length && items[0].webkitGetAsEntry) {
+    const entries = [];
+    for (const it of items) { const en = it.webkitGetAsEntry(); if (en) entries.push(en); }
+    for (const en of entries) await walkEntry(en, collected, '');
+    pendingFiles = collected;
+  } else {
+    for (const f of e.dataTransfer.files) await addFile(f);
+    return;
+  }
+  afterLoad();
+});
+drop.addEventListener('click', () => document.getElementById('fileInput').click());
+
+function walkEntry(entry, out, prefix) {
+  return new Promise(async resolve => {
+    if (entry.isFile) {
+      entry.file(async f => {
+        const name = prefix + entry.name;
+        if (/\.zip$/i.test(entry.name)) {
+          try { const e = await unzipEntries(f); e.forEach(x => out.push({ name: prefix + x.name, content: x.content, err: x.err, size: x.size })); }
+          catch (err) { out.push({ name, content: null, err: err.message }); }
+        } else {
+          out.push({ name, content: await f.text().catch(() => null), size: f.size });
+        }
+        resolve();
+      }, () => resolve());
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      const readBatch = () => new Promise(res => reader.readEntries(es => res(es), () => res([])));
+      const readAll = async () => {
+        let es;
+        do {
+          es = await readBatch();
+          for (const e of es) await walkEntry(e, out, prefix + entry.name + '/');
+        } while (es.length);
+      };
+      await readAll(); resolve();
+    } else resolve();
+  });
+}
+
+async function addFile(f) {
+  if (/\.zip$/i.test(f.name)) {
+    try {
+      const entries = await unzipEntries(f);
+      entries.forEach(x => pendingFiles.push({ name: x.name, content: x.content, err: x.err, size: x.size }));
+    } catch (e) {
+      pendingFiles.push({ name: f.name, content: null, err: e.message });
+    }
+  } else {
+    pendingFiles.push({ name: f.name, content: await f.text().catch(() => null), size: f.size });
+  }
+}
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  pendingFiles = [];
+  for (const f of e.target.files) await addFile(f);
+  afterLoad();
+});
+document.getElementById('dirInput').addEventListener('change', async e => {
+  pendingFiles = [];
+  for (const f of e.target.files) {
+    pendingFiles.push({ name: f.webkitRelativePath || f.name, content: await f.text().catch(() => null), size: f.size });
+  }
+  afterLoad();
+});
+
+function afterLoad() {
+  const box = document.getElementById('filelist');
+  if (!pendingFiles.length) { box.innerHTML = ''; document.getElementById('scanBtn').style.display = 'none'; return; }
+  const shown = pendingFiles.slice(0, 60);
+  box.innerHTML = shown.map(f =>
+    '<div class="fi"><span>' + escapeHtml(f.name) + (f.err ? ' <b style="color:#e07a7a">(' + escapeHtml(f.err) + ')</b>' : '') + '</span>' +
+    '<span class="sz">' + (f.size != null ? (f.size / 1024).toFixed(1) + ' KB' : '') + '</span></div>'
+  ).join('') + (pendingFiles.length > 60 ? '<div class="fi"><span>… 还有 ' + (pendingFiles.length - 60) + ' 个文件</span></div>' : '');
+  document.getElementById('scanBtn').style.display = 'inline-block';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function scanAll() {
+  if (!pendingFiles.length) return;
+  const findings = [];
+  let scanned = 0, skipped = 0, totalBytes = 0;
+  const netTargets = new Set();
+  const fileReads = new Set();
+
+  for (const f of pendingFiles) {
+    if (f.err || f.content == null) { skipped++; continue; }
+    if (!isTextFile(f.name)) { skipped++; continue; }
+    if (f.content.length > 2 * 1024 * 1024) { skipped++; continue; }
+    scanned++; totalBytes += f.content.length;
+    const lines = f.content.split('\n');
+
+    for (const rule of RULES) {
+      const hits = [];
+      lines.forEach((ln, idx) => {
+        if (ln.length > 2000) return;
+        if (rule.re.test(ln)) hits.push({ idx: idx + 1, text: ln.trim().slice(0, 160) });
+      });
+      if (!hits.length) continue;
+      findings.push({ rule, file: f.name, hits: hits.slice(0, 5), total: hits.length });
+    }
+
+    // 收集网络目标
+    const urlRe = /https?:\/\/[\w.\-]+/g;
+    let m; while ((m = urlRe.exec(f.content)) !== null) netTargets.add(m[0]);
+    // 收集敏感路径
+    const pathRe = /(~\/\.[\w]+|\.ssh|\.aws|\.config|MEMORY\.md|SOUL\.md)/g;
+    while ((m = pathRe.exec(f.content)) !== null) fileReads.add(m[1] || m[0]);
+  }
+
+  renderReport(findings, { scanned, skipped, total: pendingFiles.length, bytes: totalBytes, netTargets, fileReads });
+}
+
+function renderReport(findings, meta) {
+  const box = document.getElementById('reportBox');
+  box.classList.add('show');
+
+  const cnt = { critical: 0, high: 0, mid: 0 };
+  findings.forEach(f => cnt[f.rule.sev]++);
+
+  // 结论
+  const vBox = document.getElementById('verdictBox');
+  if (cnt.critical > 0) {
+    vBox.className = 'verdict v-block';
+    vBox.innerHTML = '<span style="font-size:26px">⛔</span><span>拒绝安装 · 命中 ' + cnt.critical + ' 项「立即拒绝」级特征</span>';
+  } else if (cnt.high > 0) {
+    vBox.className = 'verdict v-danger';
+    vBox.innerHTML = '<span style="font-size:26px">🔴</span><span>高风险 · 命中 ' + cnt.high + ' 项高危特征，须人工逐条复核</span>';
+  } else if (cnt.mid > 0) {
+    vBox.className = 'verdict v-warn';
+    vBox.innerHTML = '<span style="font-size:26px">🟡</span><span>中等风险 · 命中 ' + cnt.mid + ' 项，建议看过再装</span>';
+  } else {
+    vBox.className = 'verdict v-safe';
+    vBox.innerHTML = '<span style="font-size:26px">🟢</span><span>未发现已知危险特征 · 但仍需人读一遍代码</span>';
+  }
+
+  // 概览
+  document.getElementById('summaryGrid').innerHTML =
+    '<div class="sg"><div class="k">扫描文件</div><div class="v">' + meta.scanned + ' / ' + meta.total + '</div></div>' +
+    '<div class="sg"><div class="k">跳过（非文本/过大）</div><div class="v">' + meta.skipped + '</div></div>' +
+    '<div class="sg"><div class="k">发现问题</div><div class="v ' + (findings.length ? 'red' : 'green') + '">' + findings.length + '</div></div>' +
+    '<div class="sg"><div class="k">外部地址</div><div class="v orange">' + meta.netTargets.size + '</div></div>';
+
+  // 风险分布
+  document.getElementById('riskRow').innerHTML =
+    '<span class="chip' + (cnt.critical ? ' on-critical' : '') + '">⛔ 立即拒绝 ' + cnt.critical + '</span>' +
+    '<span class="chip' + (cnt.high ? ' on-high' : '') + '">🔴 高危 ' + cnt.high + '</span>' +
+    '<span class="chip' + (cnt.mid ? ' on-mid' : '') + '">🟡 中危 ' + cnt.mid + '</span>' +
+    '<span class="chip on-low">🟢 扫描文件 ' + meta.scanned + '</span>';
+
+  // 触及的路径 / 网络目标
+  let permHtml = '';
+  if (meta.fileReads.size) permHtml += '<div class="perm"><b>触及的敏感路径：</b>' + [...meta.fileReads].map(escapeHtml).join('、') + '</div>';
+  if (meta.netTargets.size) permHtml += '<div class="perm"><b>出现的网络地址：</b>' + [...meta.netTargets].slice(0, 12).map(escapeHtml).join('、') + (meta.netTargets.size > 12 ? ' …' : '') + '</div>';
+  document.getElementById('permBox').innerHTML = permHtml;
+
+  // 明细
+  const order = { critical: 0, high: 1, mid: 2 };
+  findings.sort((a, b) => order[a.rule.sev] - order[b.rule.sev]);
+  document.getElementById('findingsBox').innerHTML = findings.length
+    ? findings.map(f =>
+        '<div class="finding ' + f.rule.sev + '">' +
+          '<div class="fh"><span class="fname">' + escapeHtml(f.rule.name) + '</span>' +
+          '<span class="fscore fs-' + f.rule.sev + '">' + (f.rule.sev === 'critical' ? '⛔ 立即拒绝' : f.rule.sev === 'high' ? '🔴 高危' : '🟡 中危') + '</span></div>' +
+          '<div class="fdesc">' + escapeHtml(f.rule.desc) + '　·　文件：' + escapeHtml(f.file) + '（' + f.total + ' 处）</div>' +
+          f.hits.map(h => '<div class="fline">第' + h.idx + '行: ' + escapeHtml(h.text) + '</div>').join('') +
+          (f.total > f.hits.length ? '<div class="fdesc" style="margin-top:4px">… 另有 ' + (f.total - f.hits.length) + ' 处未显示</div>' : '') +
+        '</div>'
+      ).join('')
+    : '<div class="note">未命中任何已知危险特征。注意：静态扫描只能认出「长得像坏代码」的模式，看不出「逻辑上的坏心思」——装之前还是建议人读一遍。</div>';
+
+  document.getElementById('noteBox').innerHTML =
+    '<div class="note">扫描范围：仅文本文件（.md/.js/.py/.sh/.json 等），二进制与 2MB 以上文件跳过。全部在浏览器本地完成，文件不会上传。</div>';
+
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
