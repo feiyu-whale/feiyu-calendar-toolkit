@@ -128,8 +128,28 @@ textarea:focus { outline: none; border-color: #3d6a96; }
       本工具是「静态扫描」，只认特征模式，<b>代码到底想干什么要靠人读</b>。扫描通过 ≠ 一定安全。
     </div>
   </div>
+
+  <div class="card" id="deepBox">
+    <h2>③ ⚡ 深度扫描（动态模拟）</h2>
+    <div style="background:#2a1d0d;border-left:4px solid #f0a030;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;line-height:1.9;color:#e8c88a">
+      <b>⚠️ 这一区比上面的普通筛查更完整，但对设备有要求：</b><br>
+      • 需要较新的浏览器（支持 Web Worker + Proxy）<br>
+      • 大文件或复杂代码可能卡顿，建议单个文件 ≤ 2MB<br>
+      • 会在隔离环境里<span style="color:#ffd28a">实际执行 JS 逻辑</span>（已断网、已限时），耗电略高<br>
+      • <b>只跑 JS</b>；Python / Shell 等只能做静态扫描
+    </div>
+    <p style="font-size:13px;color:#8fa8bd;margin-bottom:14px">
+      原理：把 JS 放进 Worker 隔离环境跑起来，但先把 <code style="color:#a8c8e0">fetch / XMLHttpRequest / WebSocket / eval / localStorage</code> 全部换成“记录器”——
+      代码会以为自己联网、读数据了，实际全被拦下并记录。超时 3 秒自动终止。
+    </p>
+    <div class="btnrow" style="margin-top:0">
+      <button class="btn" id="deepBtn" onclick="runDeepScan()">⚡ 开始深度扫描</button>
+      <span id="deepStatus" style="font-size:12px;color:#7d8b99;align-self:center"></span>
+    </div>
+    <div id="deepResult" style="margin-top:16px"></div>
+  </div>
 </div>
-<div class="version">v1.2.0-三层伪装识别 20261022</div>
+<div class="version">v1.5.0-深度扫描修eval遮蔽 20261022</div>
 
 <script>
 /* ============================================================
@@ -207,6 +227,9 @@ const RULES = [
   { id:'mem-touch', sev:'critical', name:'访问人格/记忆文件',
     re:/(MEMORY\.md|SOUL\.md|IDENTITY\.md|USER\.md|AGENTS\.md)/,
     desc:'触碰 AI 的长期记忆或人格文件，属高敏感目标' },
+  { id:'eicar', sev:'critical', name:'EICAR 标准杀毒测试串',
+    re:/EICAR-STANDARD-ANTIVIRUS-TEST-FILE/,
+    desc:'业界标准的杀毒测试串，出现在技能包里说明含测试用的恶意载荷' },
   { id:'eval-exec', sev:'critical', name:'eval/exec 执行外部输入',
     re:/\b(eval|exec)\s*\(\s*(?!['"`])/,
     desc:'把非字面量交给 eval/exec，可被注入任意代码' },
@@ -498,6 +521,183 @@ function scanAll() {
   }
 
   renderReport(findings, { scanned, skipped, total: pendingFiles.length, bytes: totalBytes, netTargets, fileReads });
+}
+
+/* ============================================================
+ *  第四部分：深度扫描（动态模拟）
+ *  把 JS 放进 Worker 里真跑，但先劫持 fetch/XHR/WebSocket/eval/localStorage
+ *  代码以为自己联网了，实际全被拦下并记录。3 秒超时自动终止。
+ * ============================================================ */
+const DEEP_TIMEOUT = 3000;
+
+function runDeepScan() {
+  const resBox = document.getElementById('deepResult');
+  const status = document.getElementById('deepStatus');
+  const btn = document.getElementById('deepBtn');
+
+  // 只挑 JS 文件
+  const jsFiles = pendingFiles.filter(f =>
+    f.content && /\.(js|mjs|cjs)$/i.test(f.name) && f.content.length < 2 * 1024 * 1024
+  );
+
+  if (!pendingFiles.length) {
+    resBox.innerHTML = '<div class="note">请先在上面丢入 ZIP / 文件夹 / 代码。</div>';
+    return;
+  }
+  if (!jsFiles.length) {
+    resBox.innerHTML = '<div class="note">⚠️ 没有可执行的 JS 文件可跑。深度扫描只能跑 <code>.js/.mjs/.cjs</code>；Python / Shell 请用上面的静态扫描。</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = '正在隔离环境中执行 ' + jsFiles.length + ' 个 JS 文件…';
+  resBox.innerHTML = '';
+
+  const events = [];
+  let done = 0;
+
+  jsFiles.forEach((f, idx) => {
+    let finished = false;
+    const finish = () => { if (finished) return; finished = true; done++; if (done === jsFiles.length) renderDeep(events, jsFiles.length); };
+
+    let worker;
+    try {
+      const blob = new Blob([buildWorkerCode(f.content, f.name)], { type: 'application/javascript' });
+      worker = new Worker(URL.createObjectURL(blob));
+    } catch (e) {
+      events.push({ file: f.name, kind: 'error', detail: '无法创建 Worker: ' + e.message });
+      finish(); return;
+    }
+
+    const timer = setTimeout(() => {
+      events.push({ file: f.name, kind: 'timeout', detail: '超时 ' + DEEP_TIMEOUT + 'ms 自动终止（可能有死循环）' });
+      try { worker.terminate(); } catch (e) {}
+      finish();
+    }, DEEP_TIMEOUT);
+
+    worker.onmessage = ev => {
+      const d = ev.data || {};
+      if (d.type === 'event') events.push({ file: f.name, kind: d.kind, detail: d.detail });
+      if (d.type === 'done') { clearTimeout(timer); try { worker.terminate(); } catch (e) {} finish(); }
+      if (d.type === 'error') { events.push({ file: f.name, kind: 'runtime-error', detail: d.detail }); }
+    };
+    worker.onerror = err => {
+      events.push({ file: f.name, kind: 'runtime-error', detail: (err.message || '脚本执行出错') });
+      clearTimeout(timer); try { worker.terminate(); } catch (e) {} finish();
+    };
+  });
+}
+
+function buildWorkerCode(userCode, fileName) {
+  return `
+(function(){
+  function send(kind, detail) { self.postMessage({ type:'event', kind:kind, detail:String(detail).slice(0,300) }); }
+
+  // 先把真 eval 存下来，后面用它执行用户代码
+  var REAL_EVAL = eval;
+
+  // ---- 劫持网络 ----
+  self.fetch = function(url, opts){
+    send('net', 'fetch → ' + url + (opts && opts.method ? ' [' + opts.method + ']' : '') + (opts && opts.body ? ' body=' + String(opts.body).slice(0,120) : ''));
+    return Promise.reject(new Error('blocked by sandbox'));
+  };
+  self.XMLHttpRequest = function(){
+    var u='';
+    this.open=function(m,url){ u=url; send('net', 'XHR ' + m + ' → ' + url); };
+    this.send=function(b){ if(b) send('net', 'XHR 发送数据: ' + String(b).slice(0,120)); };
+    this.setRequestHeader=function(k,v){};
+    this.addEventListener=function(){};
+    this.abort=function(){};
+  };
+  self.WebSocket = function(url){ send('net', 'WebSocket → ' + url); throw new Error('blocked'); };
+  if (typeof self.navigator === 'object' && self.navigator) {
+    try { self.navigator.sendBeacon = function(u,d){ send('net','sendBeacon → '+u); return false; }; } catch(e){}
+  }
+
+  // ---- 劫持动态执行 ----
+  var _eval = self.eval;
+  self.eval = function(s){ send('exec', 'eval 执行: ' + String(s).slice(0,160)); return undefined; };
+  var _Function = self.Function;
+  self.Function = function(){ send('exec', 'Function() 构造: ' + String(arguments[arguments.length-1]||'').slice(0,160)); return function(){}; };
+
+  // ---- 劫持存储 / 凭据 ----
+  function fakeStore(name){
+    return {
+      getItem:function(k){ send('storage', name+'.getItem("'+k+'")'); return null; },
+      setItem:function(k,v){ send('storage', name+'.setItem("'+k+'")'); },
+      removeItem:function(k){ send('storage', name+'.removeItem("'+k+'")'); },
+      clear:function(){ send('storage', name+'.clear()'); }
+    };
+  }
+  self.localStorage = fakeStore('localStorage');
+  self.sessionStorage = fakeStore('sessionStorage');
+  try {
+    Object.defineProperty(self, 'document', {
+      configurable: true,
+      value: {
+        get cookie(){ send('storage', 'document.cookie 读取'); return ''; },
+        set cookie(v){ send('storage', 'document.cookie 写入: ' + String(v).slice(0,80)); },
+        write:{ toString:function(){ return ''; } }
+      }
+    });
+  } catch(e) {}
+
+  // ---- 劫持定时器（防止外部延迟触发）----
+  var _st = self.setTimeout;
+  self.setTimeout = function(fn, t){ return _st(function(){ try{ fn(); }catch(e){} }, Math.min(t||0, 200)); };
+
+  // ---- 执行目标代码（用存下来的真 eval）----
+  try {
+    REAL_EVAL(USER_CODE_HERE);
+  } catch (e) {
+    self.postMessage({ type:'error', detail:'运行时异常: ' + (e && e.message ? e.message : e) });
+  }
+  self.postMessage({ type:'done' });
+})();
+`.replace('USER_CODE_HERE', JSON.stringify(userCode));
+}
+
+function renderDeep(events, fileCount) {
+  const btn = document.getElementById('deepBtn');
+  const status = document.getElementById('deepStatus');
+  const box = document.getElementById('deepResult');
+  btn.disabled = false;
+
+  const netE = events.filter(e => e.kind === 'net');
+  const execE = events.filter(e => e.kind === 'exec');
+  const stoE = events.filter(e => e.kind === 'storage');
+  const errE = events.filter(e => e.kind === 'timeout' || e.kind === 'runtime-error' || e.kind === 'error');
+
+  status.textContent = '完成：' + fileCount + ' 个文件，捕获 ' + events.length + ' 个行为';
+
+  const color = (netE.length || execE.length || stoE.length) ? 'v-danger' : 'v-safe';
+  const verdict = (netE.length || execE.length || stoE.length)
+    ? '⚡ 动态行为可疑 · 执行中出现了网络/代码执行/凭据访问企图'
+    : '⚡ 未捕获可疑动态行为（但仅限 3 秒内、仅 JS）';
+
+  let html = '<div class="verdict ' + color + '" style="font-size:14px">' + verdict + '</div>';
+  html += '<div class="summary-grid">' +
+    '<div class="sg"><div class="k">网络请求</div><div class="v ' + (netE.length?'red':'green') + '">' + netE.length + '</div></div>' +
+    '<div class="sg"><div class="k">动态执行</div><div class="v ' + (execE.length?'orange':'green') + '">' + execE.length + '</div></div>' +
+    '<div class="sg"><div class="k">凭据/存储访问</div><div class="v ' + (stoE.length?'orange':'green') + '">' + stoE.length + '</div></div>' +
+    '<div class="sg"><div class="k">异常/超时</div><div class="v">' + errE.length + '</div></div>' +
+  '</div>';
+
+  if (events.length) {
+    html += events.map(e => {
+      const cls = e.kind === 'net' ? 'critical' : e.kind === 'exec' ? 'high' : 'mid';
+      const label = { net:'🌐 网络', exec:'⚙️ 动态执行', storage:'🔑 凭据访问', timeout:'⏱ 超时', 'runtime-error':'💥 错误', error:'❌ 失败' }[e.kind] || e.kind;
+      return '<div class="finding ' + cls + '"><div class="fh"><span class="fname">' + label + '</span>' +
+        '<span class="fscore fs-' + cls + '">' + escapeHtml(e.file) + '</span></div>' +
+        '<div class="fline">' + escapeHtml(e.detail) + '</div></div>';
+    }).join('');
+  } else {
+    html += '<div class="note">3 秒内没有捕获到网络、动态执行或凭据访问行为。注意：无行为 ≠ 安全，可能只是这段代码在本次执行路径里没触发。</div>';
+  }
+
+  html += '<div class="footnote">深度扫描 = 在 Worker 隔离环境里真实执行 JS，但所有“出口”都被换成了记录器。不会真的联网、不会读你的真实文件。仅覆盖 JS，Python/Shell 不支持。</div>';
+  box.innerHTML = html;
+  box.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function renderReport(findings, meta) {
