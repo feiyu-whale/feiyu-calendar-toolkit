@@ -129,7 +129,7 @@ textarea:focus { outline: none; border-color: #3d6a96; }
     </div>
   </div>
 </div>
-<div class="version">v1.0.0-技能安检 20261022</div>
+<div class="version">v1.2.0-三层伪装识别 20261022</div>
 
 <script>
 /* ============================================================
@@ -210,9 +210,9 @@ const RULES = [
   { id:'eval-exec', sev:'critical', name:'eval/exec 执行外部输入',
     re:/\b(eval|exec)\s*\(\s*(?!['"`])/,
     desc:'把非字面量交给 eval/exec，可被注入任意代码' },
-  { id:'b64-decode', sev:'critical', name:'base64 解码后执行',
-    re:/(base64\s+-d|atob\s*\(|Buffer\.from\([^)]*base64)/i,
-    desc:'先解码再执行/写盘，典型的隐藏载荷手法（需人工确认用途）' },
+  { id:'b64-decode', sev:'critical', name:'base64 解码（可疑）',
+    re:/(base64\.b64decode|codecs\.decode|base64\s+-d|atob\s*\(|Buffer\.from\([^)]*base64)/i,
+    desc:'先解码再使用，典型的隐藏载荷手法（工具会自动尝试解码并扫描结果）' },
   { id:'ip-url', sev:'high', name:'直连 IP 而非域名',
     re:/(https?:\/\/)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/,
     desc:'直接用 IP 通信，绕过域名溯源' },
@@ -224,9 +224,9 @@ const RULES = [
     desc:'向系统目录写文件' },
 
   // ---- 高危（high）----
-  { id:'net-out', sev:'high', name:'向外部服务器发数据',
-    re:/(fetch|axios|requests\.(get|post)|http\.request|https\.request|XMLHttpRequest|net\.connect)/,
-    desc:'存在网络请求，需确认目的地与发送内容' },
+  { id:'net-out', sev:'high', name:'代码中的网络请求',
+    re:/(?<!\w)(fetch\s*\(|axios\.|requests\.(get|post|put)|http\.request|https\.request|XMLHttpRequest|net\.connect|urllib\.request|httpx\.)/,
+    desc:'存在网络请求调用，需确认目的地与发送内容' },
   { id:'net-unknown', sev:'high', name:'curl/wget 任意地址',
     re:/(curl|wget)\s+(-[a-zA-Z]+\s+)*https?:\/\//i,
     desc:'存在命令行网络请求，需确认目的地' },
@@ -401,9 +401,97 @@ function scanAll() {
       findings.push({ rule, file: f.name, hits: hits.slice(0, 5), total: hits.length });
     }
 
-    // 收集网络目标
+    // 收集网络目标（含 base64 解码后的隐藏地址）
+    const decodeTargets = [];
     const urlRe = /https?:\/\/[\w.\-]+/g;
-    let m; while ((m = urlRe.exec(f.content)) !== null) netTargets.add(m[0]);
+    let m;
+    while ((m = urlRe.exec(f.content)) !== null) netTargets.add(m[0]);
+    // 自动解码 base64 串，把藏起来的地址挖出来再扫一遍
+    const b64Re = /["'`]([A-Za-z0-9+\/]{16,}={0,2})["'`]/g;
+    while ((m = b64Re.exec(f.content)) !== null) {
+      try {
+        const dec = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
+        if (/^[\x20-\x7e\s]+$/.test(dec)) {
+          let u; const r2 = /https?:\/\/[\w.\-]+/g;
+          while ((u = r2.exec(dec)) !== null) {
+            netTargets.add(u[0]);
+            decodeTargets.push({ file: f.name, from: m[1].slice(0, 40), to: dec.slice(0, 200) });
+          }
+          // 解码后如果含危险关键词，也当一条发现
+          if (/(upload|collect|exfil|steal|webhook|pastebin|transfer\.sh|ngrok|api[-_.]?key|token)/i.test(dec)) {
+            findings.push({
+              rule: { id: 'b64-hidden', sev: 'critical', name: 'base64 藏了可疑地址/关键词',
+                desc: '解码后暴露外部地址或外传关键字，典型隐藏载荷' },
+              file: f.name, hits: [{ idx: 0, text: '解码结果: ' + dec.slice(0, 160) }], total: 1
+            });
+          }
+        }
+      } catch (e) { /* 不是合法 base64，忽略 */ }
+    }
+
+    // ===== 提升项 1：十六进制转义串还原 =====
+    const hexRe = /((?:\\x[0-9a-fA-F]{2}){6,})/g;
+    while ((m = hexRe.exec(f.content)) !== null) {
+      try {
+        const dec = m[1].replace(/\\x([0-9a-fA-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+        let u; const r3 = /https?:\/\/[\w.\-]+/g;
+        let found = false;
+        while ((u = r3.exec(dec)) !== null) { netTargets.add(u[0]); found = true; }
+        if (found || /(upload|collect|exfil|steal|webhook|token|password)/i.test(dec)) {
+          findings.push({
+            rule: { id: 'hex-hidden', sev: 'critical', name: '十六进制转义藏着内容',
+              desc: '十六进制串还原后暴露出地址或敏感关键字' },
+            file: f.name, hits: [{ idx: 0, text: '还原结果: ' + dec.slice(0, 160) }], total: 1
+          });
+        }
+      } catch (e) {}
+    }
+
+    // ===== 提升项 2：字符串拼接地址（a + b 拼出 URL）=====
+    const parts = f.content.match(/["'`][^"'`\n]{1,60}["'`]/g) || [];
+    if (parts.length >= 2) {
+      // 把同一文件里的字符串字面量全部拼起来试一遍，看是否凑出 URL
+      const joined = parts.map(x => x.slice(1, -1)).join('');
+      const urlsInJoined = joined.match(/https?:\/\/[\w.\-]+/g);
+      if (urlsInJoined) {
+        urlsInJoined.forEach(u => netTargets.add(u));
+        // 只有“单个字符串里凑不出来、拼起来才凑得出”的才算拼接隐藏
+        const singleUrls = (f.content.match(/https?:\/\/[\w.\-]+/g) || []);
+        const hidden = urlsInJoined.filter(u => !singleUrls.includes(u));
+        if (hidden.length) {
+          findings.push({
+            rule: { id: 'concat-url', sev: 'high', name: '地址被拆开拼接',
+              desc: '单独的字符串里看不到完整地址，拼起来才出现，典型的绕过手法' },
+            file: f.name, hits: [{ idx: 0, text: '拼出: ' + hidden.slice(0, 3).join(' , ') }], total: hidden.length
+          });
+        }
+      }
+    }
+
+    // ===== 提升项 3：代码里出现敏感路径/命令但被转义拆分 =====
+    const obfRe = /([A-Za-z_])\s*\+\s*["'`]([\/.~\\][^"'`]{0,30})["'`]/g;
+    while ((m = obfRe.exec(f.content)) !== null) {
+      // 常见于 '\.ssh' + '/id_rsa' 这类拆写
+      const frag = m[2];
+      if (/(ssh|aws|config|passwd|shadow|secret|key)/i.test(frag)) {
+        findings.push({
+          rule: { id: 'split-path', sev: 'high', name: '敏感路径被拆写',
+            desc: '敏感路径用拼接方式拆开书写，疑在绕过关键字匹配' },
+          file: f.name, hits: [{ idx: 0, text: m[0].slice(0, 100) }], total: 1
+        });
+      }
+    }
+    // 敏感域名关键词（哪怕不是完整 URL）
+    const badHostRe = /(evil|malicious|exfil|steal|collect[-.]|upload[-.]|pastebin\.com|transfer\.sh|ngrok\.io|webhook\.site)/gi;
+    let b;
+    while ((b = badHostRe.exec(f.content)) !== null) {
+      const ctx = f.content.slice(Math.max(0, b.index - 40), b.index + 60);
+      findings.push({
+        rule: { id: 'bad-host', sev: 'critical', name: '出现可疑域名关键词',
+          desc: '匹配到常见的收数据/外传服务特征词' },
+        file: f.name, hits: [{ idx: 0, text: ctx.replace(/\s+/g, ' ') }], total: 1
+      });
+    }
     // 收集敏感路径
     const pathRe = /(~\/\.[\w]+|\.ssh|\.aws|\.config|MEMORY\.md|SOUL\.md)/g;
     while ((m = pathRe.exec(f.content)) !== null) fileReads.add(m[1] || m[0]);
