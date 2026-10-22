@@ -215,7 +215,7 @@
   </div>
 
   <div class="foot">🐳 大肥鱼出品 · 纯本地回放 · 零联网 · 零存储（刷新即重置）<br>游戏虚构，仅供娱乐，不构成任何投资建议</div>
-  <div class="ver" style="text-align:center;color:#3a4a2a;font-size:10px;margin-top:8px">v6-加载弹窗 20261017</div>
+  <div class="ver" style="text-align:center;color:#3a4a2a;font-size:10px;margin-top:8px">v1.2.0-强平扣债 20261022</div>
 </body>
 
 <script>
@@ -460,21 +460,42 @@
     if(d<=0) return;
     var mr=netWorth()/d;
     if(mr<1.30){
-      // 强制平仓：卖掉所有股票抵债
+      // 强制平仓：卖掉所有持仓（多仓+空仓），所得优先抵债
       var r=fxOn(state.date);
       var sold=0;
+      // 1) 平多仓：卖出所得进现金
       for(var c in state.pos){
         var px=priceOn(c,state.date); if(px==null) px=0;
         var val=px*state.pos[c].shares; sold+=val;
-        // 卖出所得入当前市币种（统一折人民币处理）
         state.cny=(state.cny||0)+(mkt==='us'? val*r : val);
         delete state.pos[c];
       }
-      state.log.unshift(state.date+' 【爆仓·强平】维持担保比例跌破130%，强制平仓，卖出全部持仓 ¥'+sold.toFixed(0)+' 抵债');
-      showMarginCall(sold, mr);
+      // 2) 平空仓：买回还券，盈亏进现金
+      for(var sc in (state.short||{})){
+        var sq=state.short[sc]; if(!sq||!sq.shares) continue;
+        var spx=priceOn(sc,state.date); if(spx==null) spx=0;
+        // 空仓盈亏 =(开仓价-现价)x股数；买回需付 现价x股数
+        var pnl=(sq.entry-spx)*sq.shares;
+        state.cny=(state.cny||0)+(mkt==='us'? pnl*r : pnl);
+        delete state.short[sc];
+      }
+      // 3) 违约金 0.5%（按卖出总额计）
+      var penalty=sold*0.005;
+      state.cny=(state.cny||0)-penalty;
+      // 4) 核心：所得优先抵债（日志写"抵债"，这里必须真扣）
+      var d0=state.debt||0;
+      var repay=Math.min(Math.max(state.cny,0), d0);
+      state.debt=d0-repay;
+      if(state.debt<0.01) state.debt=0;
+      var msg=state.date+' 【爆仓·强平】维持担保比例跌破130%，强制平仓，卖出持仓 ¥'+sold.toFixed(0);
+      if(repay>0) msg+='，抵债 ¥'+repay.toFixed(0)+'，剩余债务 ¥'+state.debt.toFixed(0);
+      else msg+='，无可抵债现金，债务仍为 ¥'+d0.toFixed(0);
+      if(penalty>0) msg+='（违约金 ¥'+penalty.toFixed(0)+'）';
+      state.log.unshift(msg);
+      showMarginCall(sold, mr, repay, state.debt);
     }
   }
-  function showMarginCall(sold, mr){
+  function showMarginCall(sold, mr, repay, debtLeft){
     sfxBankrupt();
     setTimeout(function(){
       var mask=document.createElement('div');
@@ -483,7 +504,7 @@
         '<div style="font-size:34px;margin-bottom:8px">📉</div>'+
         '<div style="font-size:20px;font-weight:700;color:#e06060;margin-bottom:10px">强制平仓</div>'+
         '<div style="font-size:13px;color:#c09090;line-height:1.9;margin-bottom:14px">'+
-          '维持担保比例跌破 <b>130%</b>（当前 '+Math.round(mr*100)+'%）。<br>券商拔网线，持仓被强平 ¥'+sold.toFixed(0)+' 抵债。<br>'+
+          '维持担保比例跌破 <b>130%</b>（当前 '+Math.round(mr*100)+'%）。<br>券商拔网线，持仓被强平 ¥'+sold.toFixed(0)+'。<br>'+'已抵债 <b>¥'+(repay||0).toFixed(0)+'</b>，剩余债务 <b>¥'+(debtLeft||0).toFixed(0)+'</b>。<br>'+
           '<span style="font-size:12px;color:#a08080">（杠杆的代价）</span>'+
         '</div><div style="font-size:12px;color:#807070">（点任意处关闭）</div></div>';
       mask.onclick=function(){ mask.remove(); };
