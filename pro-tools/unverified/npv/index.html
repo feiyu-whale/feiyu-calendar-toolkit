@@ -33,6 +33,75 @@
 
 <h1>NPV 净现值 / IRR 内部收益率 · 完整交付物</h1>
 
+<div class="npv-calc" style="background:#fff;border-radius:10px;padding:16px;margin:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);">
+  <div style="font-size:15px;font-weight:600;color:#2c3e50;margin-bottom:12px;border-left:3px solid #2980b9;padding-left:8px;">🔢 即时计算</div>
+  <div style="margin-bottom:12px;">
+    <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">现金流（第0期起，逗号分隔；负数表示投入）</label>
+    <input type="text" id="npvCF" value="-10000, 3000, 4000, 5000, 3000" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;font-family:monospace;">
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:130px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">折现率（%）</label>
+      <input type="number" id="npvRate" value="10" step="0.1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+  </div>
+  <div id="npvResult" style="margin-top:14px;padding:12px;background:#f8fafc;border:1px solid #e3e9ef;border-radius:8px;font-size:14px;"></div>
+  <div style="font-size:11px;color:#95a5a6;margin-top:8px;">公式：NPV = Σ CFt / (1+r)^t；IRR 用牛顿迭代求 NPV=0 的折现率</div>
+</div>
+
+<script>
+(function(){
+  function parseCF(s){
+    return s.split(/[,，\s]+/).filter(function(x){return x!=='';}).map(function(x){ return Number(x); });
+  }
+  function npvCalc(cf, r){
+    var v=0, d=1;
+    for(var t=0;t<cf.length;t++){ v += cf[t]/d; d *= (1+r); }
+    return v;
+  }
+  function irrCalc(cf){
+    // 二分法，稳健不依赖导数
+    function f(r){ return npvCalc(cf,r); }
+    var lo=-0.9999, hi=10;
+    var flo=f(lo), fhi=f(hi);
+    if(isNaN(flo)||isNaN(fhi)) return null;
+    if(flo*fhi>0) return null;
+    for(var i=0;i<300;i++){
+      var mid=(lo+hi)/2, fm=f(mid);
+      if(Math.abs(fm)<1e-9) return mid;
+      if(flo*fm<=0){ hi=mid; fhi=fm; } else { lo=mid; flo=fm; }
+    }
+    return (lo+hi)/2;
+  }
+  function run(){
+    var box=document.getElementById('npvResult');
+    var cf=parseCF(document.getElementById('npvCF').value);
+    var ratePct=parseFloat(document.getElementById('npvRate').value);
+    if(cf.length<2){ box.innerHTML='<span style="color:#e74c3c">现金流至少需要 2 期</span>'; return; }
+    for(var i=0;i<cf.length;i++){
+      if(!isFinite(cf[i])){ box.innerHTML='<span style="color:#e74c3c">第 '+i+' 期不是有效数字</span>'; return; }
+    }
+    if(!isFinite(ratePct)){ box.innerHTML='<span style="color:#e74c3c">请填写折现率</span>'; return; }
+    var r=ratePct/100;
+    if(r<=-1){ box.innerHTML='<span style="color:#e74c3c">折现率必须大于 -100%</span>'; return; }
+
+    var v=npvCalc(cf,r);
+    var irr=irrCalc(cf);
+    var line='';
+    line+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">NPV 净现值</span><b style="color:'+(v>=0?'#27ae60':'#e74c3c')+';font-size:16px">'+v.toFixed(2)+'</b></div>';
+    line+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">IRR 内部收益率</span><b>'+(irr===null?'无解（现金流不改变符号）':(irr*100).toFixed(3)+'%')+'</b></div>';
+    line+='<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#666">期数</span><b>'+cf.length+' 期</b></div>';
+    box.innerHTML=line;
+  }
+  ['npvCF','npvRate'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('input',run);
+  });
+  run();
+})();
+</script>
+
+
 <div class="tabs">
   <div class="tab active" data-tab="src">一、JS 源码</div>
   <div class="tab" data-tab="test">二、单元测试</div>
@@ -59,7 +128,7 @@
 <div id="doc-content"></div>
 </div>
 
-<div class="version">v2.0.0-完整版 20261021</div>
+<div class="version">v2.1.0-补即时计算界面 20261022</div>
 
 <script>
 /* ============================================================

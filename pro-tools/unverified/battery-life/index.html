@@ -153,14 +153,63 @@
 </style>
 </head>
 <body>
-<div style="background:#4a2a10;border:2px solid #ff9a40;border-radius:8px;padding:10px;margin:10px;color:#ffd0a0;font-size:12px;line-height:1.7;">
-⚠️ <b>界面未完成</b>：本页有计算说明和公式，但<b>缺少可输入参数的操作界面</b>，暂时无法直接计算。<br>
-可作为公式和参数说明参考，<b>请勿当作可直接使用的计算器</b>。
-</div>
 
 
 <h1>电池续航计算工具</h1>
 <div class="subtitle">基于容量、负载电流、放电深度估算理论续航时间</div>
+
+<div class="calc-card" style="background:#fff;border-radius:10px;padding:16px;margin:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);">
+  <div style="font-size:15px;font-weight:600;color:#2c3e50;margin-bottom:12px;border-left:3px solid #27ae60;padding-left:8px;">🔢 即时计算</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:130px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">电池容量（mAh）</label>
+      <input type="number" id="cap" value="3000" min="0.1" step="1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+    <div style="flex:1;min-width:130px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">负载电流（mA）</label>
+      <input type="number" id="cur" value="500" min="0.001" step="1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+    <div style="flex:1;min-width:130px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">放电深度 DoD（%）</label>
+      <input type="number" id="dod" value="80" min="1" max="100" step="1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+  </div>
+  <div id="blResult" style="margin-top:14px;padding:12px;background:#f8fafc;border:1px solid #e3e9ef;border-radius:8px;font-size:14px;"></div>
+  <div style="font-size:11px;color:#95a5a6;margin-top:8px;">公式：续航时间(h) = 容量(mAh) × 放电深度(%) ÷ 负载电流(mA) ÷ 100</div>
+</div>
+
+<script>
+(function(){
+  function f(n){
+    if(n>=1000) return n.toFixed(0);
+    if(n>=10) return n.toFixed(1);
+    return n.toFixed(2);
+  }
+  function calcBL(){
+    var box=document.getElementById('blResult');
+    var cap=parseFloat(document.getElementById('cap').value);
+    var cur=parseFloat(document.getElementById('cur').value);
+    var dod=parseFloat(document.getElementById('dod').value);
+    if(!isFinite(cap)||!isFinite(cur)||!isFinite(dod)){
+      box.innerHTML='<span style="color:#e74c3c">请填写完整的三个参数</span>'; return;
+    }
+    if(cap<=0){ box.innerHTML='<span style="color:#e74c3c">电池容量必须大于 0</span>'; return; }
+    if(cur<=0){ box.innerHTML='<span style="color:#e74c3c">负载电流必须大于 0</span>'; return; }
+    if(dod<=0||dod>100){ box.innerHTML='<span style="color:#e74c3c">放电深度需在 1–100% 之间</span>'; return; }
+    var hours = cap*dod/cur/100;
+    var line='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">理论续航</span><b style="color:#27ae60;font-size:16px">'+f(hours)+' 小时</b></div>';
+    line+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">折合天数</span><b>'+(hours/24).toFixed(2)+' 天</b></div>';
+    line+='<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#666">可用容量</span><b>'+(cap*dod/100).toFixed(0)+' mAh</b></div>';
+    box.innerHTML=line;
+  }
+  ['cap','cur','dod'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('input',calcBL);
+  });
+  calcBL();
+})();
+</script>
+
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="source">JS 源码</button>
@@ -280,7 +329,7 @@
   <p>本工具是工程师手边的「估算小助手」，而非「设计定案工具」。它的价值在于：让你在方案阶段用 30 秒得到一个数量级正确的答案，快速筛掉明显不可行的方案，把有限的实测资源留给最有希望的候选。请始终记住：估算只是起点，实测才是终点。</p>
 </div>
 
-<div class="version">v2.0.0-完整版 20261021</div>
+<div class="version">v2.1.0-补即时计算界面 20261022</div>
 
 <script>
 /* ============================================================

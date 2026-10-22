@@ -157,14 +157,56 @@
 </style>
 </head>
 <body>
-<div style="background:#4a2a10;border:2px solid #ff9a40;border-radius:8px;padding:10px;margin:10px;color:#ffd0a0;font-size:12px;line-height:1.7;">
-⚠️ <b>界面未完成</b>：本页有计算说明和公式，但<b>缺少可输入参数的操作界面</b>，暂时无法直接计算。<br>
-可作为公式和参数说明参考，<b>请勿当作可直接使用的计算器</b>。
-</div>
-
-
 <header>
   <h1>光伏发电量估算工具</h1>
+
+<div style="background:#fff;border-radius:10px;padding:16px;margin:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);">
+  <div style="font-size:15px;font-weight:600;color:#2c3e50;margin-bottom:12px;border-left:3px solid #f39c12;padding-left:8px;">🔢 即时计算</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:140px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">装机容量 P（kWp）</label>
+      <input type="number" id="pvP" value="10" min="0.1" step="0.1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+    <div style="flex:1;min-width:140px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">年峰值日照时数 H（h）</label>
+      <input type="number" id="pvH" value="1200" min="1" step="1" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+    <div style="flex:1;min-width:140px;">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">系统效率 PR（0–1）</label>
+      <input type="number" id="pvPR" value="0.80" min="0.1" max="1" step="0.01" style="width:100%;padding:8px 10px;border:1px solid #d5dbe1;border-radius:6px;font-size:14px;">
+    </div>
+  </div>
+  <div id="pvResult" style="margin-top:14px;padding:12px;background:#f8fafc;border:1px solid #e3e9ef;border-radius:8px;font-size:14px;"></div>
+  <div style="font-size:11px;color:#95a5a6;margin-top:8px;">公式：E = P × H × PR（单位 kWh）。本工具不内置地区辐射数据，H 需自行查询权威数据源。</div>
+</div>
+
+<script>
+(function(){
+  function run(){
+    var box=document.getElementById('pvResult');
+    var P=parseFloat(document.getElementById('pvP').value);
+    var H=parseFloat(document.getElementById('pvH').value);
+    var PR=parseFloat(document.getElementById('pvPR').value);
+    if(!isFinite(P)||!isFinite(H)||!isFinite(PR)){ box.innerHTML='<span style="color:#e74c3c">请填写完整的三个参数</span>'; return; }
+    if(P<=0){ box.innerHTML='<span style="color:#e74c3c">装机容量必须大于 0</span>'; return; }
+    if(H<=0){ box.innerHTML='<span style="color:#e74c3c">峰值日照时数必须大于 0</span>'; return; }
+    if(PR<=0||PR>1){ box.innerHTML='<span style="color:#e74c3c">系统效率 PR 需在 0–1 之间</span>'; return; }
+    var E=P*H*PR;
+    var s='';
+    s+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">年发电量</span><b style="color:#f39c12;font-size:16px">'+E.toFixed(0)+' kWh</b></div>';
+    s+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">折合万度</span><b>'+(E/10000).toFixed(2)+' 万度</b></div>';
+    s+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e3e9ef"><span style="color:#666">日均发电</span><b>'+(E/365).toFixed(1)+' kWh/天</b></div>';
+    s+='<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#666">等效利用小时</span><b>'+(H*PR).toFixed(0)+' h</b></div>';
+    box.innerHTML=s;
+  }
+  ['pvP','pvH','pvPR'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('input',run);
+  });
+  run();
+})();
+</script>
+
   <p>基于 IEC 61724-1 与 GB/T 50797-2012 的简化估算模型 · 提供误差范围而非绝对精确值</p>
 </header>
 
@@ -369,7 +411,7 @@
 
 </div>
 
-<div class="version">v2.0.0-完整版 20261021</div>
+<div class="version">v2.1.0-补即时计算界面 20261022</div>
 
 <script>
 /* ============================================================
