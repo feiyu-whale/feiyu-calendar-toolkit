@@ -10,6 +10,35 @@
     font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
   #scene { display: block; width: 100%; height: 100%; }
 
+  /* 2026-11-05 用户背景视频：铺在 3D 画布底下，虚化压暗；画布本身透明 */
+  #bgVideo {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 0; pointer-events: none;
+    filter: blur(18px) brightness(.45) saturate(1.15);
+    transform: scale(1.06);            /* 放大一点，吃掉虚化后的边缘 */
+    opacity: 0; transition: opacity .6s ease;
+  }
+  #bgVideo.on { opacity: 1; }
+  #bgMask {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(4,12,22,.28) 0%, rgba(4,12,22,.72) 100%);
+    opacity: 0; transition: opacity .6s ease;
+  }
+  #bgMask.on { opacity: 1; }
+  #scene { position: relative; z-index: 2; }
+
+  /* 背景设置按钮 */
+  #btnBg {
+    position: fixed; right: 14px; bottom: 14px; z-index: 30;
+    padding: 8px 14px; border-radius: 20px; cursor: pointer;
+    background: rgba(8, 20, 34, .82); border: 1px solid rgba(120, 180, 215, .35);
+    color: #cfe4f5; font-size: 12px; backdrop-filter: blur(8px);
+    font-family: inherit; transition: .18s;
+  }
+  #btnBg:hover { background: rgba(18, 40, 62, .92); border-color: rgba(150, 205, 240, .55); }
+  #btnBg:active { transform: scale(.96); }
+  #btnBg.has { border-color: rgba(255, 207, 77, .55); color: #ffd86a; }
+
   #hint {
     position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
     color: #cfe4f5; font-size: 13px; background: rgba(8, 20, 34, .78);
@@ -112,10 +141,140 @@
   .ld-bar i { display: block; height: 100%; width: 0%; border-radius: 4px;
     background: linear-gradient(90deg, #6fb8ff, #ffd86a); transition: width .3s ease; }
   .ld-pct { margin-top: 9px; font-size: 12px; color: #9fc0da; font-variant-numeric: tabular-nums; }
+
+  /* ===== 2026-10-18 开局设置页 ===== */
+  #setup {
+    position: fixed; inset: 0; z-index: 960; display: flex;
+    align-items: center; justify-content: center; padding: 16px;
+    background: radial-gradient(circle at 50% 35%, #17324b 0%, #0a1420 72%);
+  }
+  #setup.hidden { display: none; }
+  .se-card { width: 100%; max-width: 340px; max-height: 92vh; overflow-y: auto;
+    background: linear-gradient(165deg, #16283a, #0d1725);
+    border: 1.5px solid rgba(255,207,77,.45); border-radius: 18px;
+    padding: 18px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
+  .se-title { font-size: 19px; font-weight: 900; color: #ffd86a; text-align: center;
+    letter-spacing: 3px; margin-bottom: 4px; }
+  .se-sub { font-size: 11px; color: #7fa8c8; text-align: center; margin-bottom: 16px; }
+  .se-row { display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 2px; border-bottom: 1px dashed rgba(120,180,215,.2); margin-bottom: 12px; }
+  .se-row span { font-size: 13px; color: #cfe4f5; }
+  .se-num { display: flex; align-items: center; gap: 10px; }
+  .se-num button { width: 30px; height: 30px; border-radius: 9px; font-size: 17px;
+    border: 1px solid rgba(120,180,215,.4); background: rgba(255,255,255,.06);
+    color: #cfe4f5; cursor: pointer; line-height: 1; }
+  .se-num b { font-size: 17px; color: #ffd86a; min-width: 22px; text-align: center; }
+  .se-seats { display: grid; gap: 6px; margin-bottom: 14px; }
+  .se-seat { display: flex; align-items: center; gap: 8px; padding: 7px 9px;
+    background: rgba(255,255,255,.04); border-radius: 10px; }
+  .se-seat i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .se-seat .nm { font-size: 12px; color: #cfe4f5; flex: 1; font-weight: 700; }
+  .se-seat select { font-size: 11px; padding: 4px 6px; border-radius: 7px;
+    background: #0c1826; color: #cfe4f5; border: 1px solid rgba(120,180,215,.35);
+    font-family: inherit; }
+  .se-start { display: block; width: 100%; padding: 13px; font-size: 16px;
+    font-weight: 900; font-family: inherit; letter-spacing: 4px; border-radius: 12px;
+    border: none; cursor: pointer; color: #1a1410;
+    background: linear-gradient(160deg, #ffd86a, #d9a63a);
+    box-shadow: 0 5px 0 #a87e20, 0 10px 26px rgba(0,0,0,.45); }
+  .se-start:active { transform: translateY(3px); box-shadow: 0 2px 0 #a87e20; }
+
+  /* ===== 界面瘦身：收窄两侧，给棋盘让路 ===== */
+  #players { width: 152px; padding: 8px; }
+  #players .pl { padding: 4px 6px; margin-bottom: 3px; }
+  #players .pl b { font-size: 11px; }
+  #players .pl span { font-size: 10.5px; }
+  #right { width: 168px; padding: 9px; }
+  #actions { gap: 5px; }
+  #actions button { padding: 7px; font-size: 12px; }
+  #btnRoll { font-size: 14px !important; }
+  #log { width: 210px; max-height: 96px; font-size: 11px; padding: 8px; }
+  #tileinfo .ti-name { font-size: 13px; margin-bottom: 6px; }
+  #tileinfo .ti-row { font-size: 11px; padding: 3px 0; }
+  #diceresult { font-size: 16px; min-height: 20px; margin-top: 6px; }
+
+  @media (max-width: 640px) {
+    #players { width: 108px; padding: 6px; }
+    #players .pl b { font-size: 9.5px; }
+    #players .pl span { font-size: 9px; }
+    #right { width: 124px; padding: 7px; }
+    #actions button { padding: 6px; font-size: 10.5px; }
+    #btnRoll { font-size: 12px !important; }
+    #log { width: calc(100% - 20px); max-height: 68px; font-size: 10px; }
+  }
+
+
+  /* ===== 2026-10-18 手机上再瘦身：两侧改成贴边小条，棋盘占满 ===== */
+  @media (max-width: 640px) {
+    #players {
+      left: 4px; top: 4px; width: 86px; padding: 4px;
+      background: rgba(8,20,34,.72); border-radius: 9px;
+    }
+    #players .pl {
+      padding: 2px 4px; margin-bottom: 1px; gap: 4px;
+      background: none; border-radius: 6px;
+    }
+    #players .pl i { width: 7px; height: 7px; }
+    #players .pl b { font-size: 8.5px; }
+    #players .pl span { font-size: 8.5px; }
+
+    #right {
+      right: 4px; top: 4px; width: 92px; padding: 5px;
+      background: rgba(8,20,34,.72); border-radius: 9px;
+    }
+    #tileinfo .ti-name { font-size: 10px; margin-bottom: 3px; letter-spacing: 0; }
+    #tileinfo .ti-row { font-size: 8.5px; padding: 1.5px 0; }
+    #tileinfo .dim { font-size: 8.5px; }
+    #diceresult { font-size: 12px; min-height: 15px; margin-top: 3px; }
+
+    #actions { margin-top: 5px; gap: 3px; }
+    #actions button {
+      padding: 5px 4px; font-size: 9px; border-radius: 7px;
+      letter-spacing: 0; white-space: nowrap;
+    }
+    #btnRoll { font-size: 10.5px !important; }
+
+    #log {
+      left: 4px; bottom: 4px; width: 140px; max-height: 54px;
+      font-size: 8.5px; padding: 4px 6px; line-height: 1.45;
+      background: rgba(8,20,34,.72);
+    }
+    #hint { font-size: 10px; padding: 4px 9px; top: 4px; }
+  }
+
+  /* 2026-10-19：地砖悬浮标签（CSS2D）——原缺样式导致默认字号过大，远处看成一坨 */
+  .tile-float-label {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 1px; padding: 2px 6px; border-radius: 6px;
+    background: rgba(10, 20, 32, .72);
+    border: 1px solid rgba(240, 199, 94, .28);
+    white-space: nowrap; pointer-events: none;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.15;
+    max-width: 84px;
+  }
+  .tfl-icon { font-size: 13px; line-height: 1.1; }
+  .tfl-name {
+    font-size: 10px; font-weight: 700; color: #f4ecd8;
+    max-width: 76px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tfl-sub { font-size: 9px; color: #a8b6c4; }
+  @media (max-width: 520px) {
+    .tile-float-label { padding: 1px 4px; max-width: 66px; }
+    .tfl-icon { font-size: 11px; }
+    .tfl-name { font-size: 8.5px; max-width: 58px; }
+    .tfl-sub { font-size: 8px; }
+  }
 </style>
-  <script type="module" crossorigin src="./assets/index-dlfaSRRy.js"></script>
+  <script type="module" crossorigin src="./assets/index-BNPCyqmX.js"></script>
 </head>
 <body>
+<!-- 2026-11-05：用户自定义背景视频（虚化铺底，声音作为背景音乐循环） -->
+<video id="bgVideo" playsinline loop preload="auto"></video>
+<div id="bgMask"></div>
+<input type="file" id="bgFile" accept="video/*" style="display:none">
+<button id="btnBg" type="button" title="上传一个视频当游戏背景，画面虚化铺底，声音会作为背景音乐循环播放">🎞️ 设置背景</button>
+
 <canvas id="scene"></canvas>
 <div id="hint">初始化…</div>
 
@@ -131,6 +290,25 @@
   </div>
 </div>
 
+
+<!-- 2026-10-18：开局设置 —— 人数 + 每位真人/AI -->
+<div id="setup">
+  <div class="se-card">
+    <div class="se-title">🐋 大富翁 · 3D</div>
+    <div class="se-sub">选人数，给每个位置安排真人或电脑</div>
+    <div class="se-row">
+      <span>玩家人数</span>
+      <div class="se-num">
+        <button type="button" id="seMinus">−</button>
+        <b id="seCount">4</b>
+        <button type="button" id="sePlus">＋</button>
+      </div>
+    </div>
+    <div id="seSeats" class="se-seats"></div>
+    <button id="seStart" class="se-start">▶ 开始游戏</button>
+  </div>
+</div>
+
 <div id="ui">
   <div id="players" class="panel"></div>
   <div id="right" class="panel">
@@ -140,15 +318,13 @@
       <button id="btnRoll">🎲 掷骰子</button>
       <button id="btnBuy">💰 买下地块</button>
       <button id="btnBuild">🏗️ 盖房升级</button>
+      <button id="btnSell">💸 卖掉地盘</button>
       <button id="btnEnd">➡️ 结束回合</button>
-      <button id="btnStars" style="background:linear-gradient(160deg,#4a2d6b,#2a1740);border-color:#a678d0">🌟 买星宿卡</button>
-      <button id="btnDrawGang" style="background:linear-gradient(160deg,#5a4a1e,#332a10);border-color:#d0b060">✨ 天罡降临</button>
-      <button id="btnDrawDi" style="background:linear-gradient(160deg,#5a1e2d,#331018);border-color:#d06080">🌑 地煞降临</button>
     </div>
   </div>
   <div id="log" class="panel"></div>
 </div>
 
-<div id="ver">v0.7 星宿接入 20261018</div>
+<div id="ver">v1.13-自定义背景视频 20261105</div>
 </body>
 </html>
